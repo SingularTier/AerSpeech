@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AerSpeechConsole", "AerSpeechConsole\AerSpeechConsole.csproj", "{55EC30F9-3CF4-442C-B2D3-35FA4E69B763}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AerVAPlugin", "AerVAPlugin\AerVAPlugin.csproj", "{0D42CDDF-7243-4F93-A2BE-CC53018BB9D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AerSpeech", "AerLib\AerSpeech.csproj", "{AF294B63-CE30-4FD6-B44D-11333731D6A6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{55EC30F9-3CF4-442C-B2D3-35FA4E69B763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55EC30F9-3CF4-442C-B2D3-35FA4E69B763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55EC30F9-3CF4-442C-B2D3-35FA4E69B763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55EC30F9-3CF4-442C-B2D3-35FA4E69B763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D42CDDF-7243-4F93-A2BE-CC53018BB9D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D42CDDF-7243-4F93-A2BE-CC53018BB9D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D42CDDF-7243-4F93-A2BE-CC53018BB9D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D42CDDF-7243-4F93-A2BE-CC53018BB9D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF294B63-CE30-4FD6-B44D-11333731D6A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF294B63-CE30-4FD6-B44D-11333731D6A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF294B63-CE30-4FD6-B44D-11333731D6A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF294B63-CE30-4FD6-B44D-11333731D6A6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
