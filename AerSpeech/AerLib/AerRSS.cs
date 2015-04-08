@@ -32,29 +32,38 @@ namespace AerSpeech
         private XmlDocument _xmlDoc;
         private WebClient _webClient;
         public List<RSSItem> Entries;
+        public bool Loaded;
 
         public AerRSS(string rssURL)
         {
             _xmlDoc = new XmlDocument();
             _webClient = new WebClient();
             Entries = new List<RSSItem>();
-
-            StreamReader rssFeed = new StreamReader(_webClient.OpenRead(rssURL));
-            _xmlDoc.Load(new XmlTextReader(rssFeed));
-
-            XmlNode rootRss = _xmlDoc.SelectSingleNode("rss");
-            XmlNodeList channels = rootRss.ChildNodes;
-
-            foreach (XmlNode channelNode in channels)
+            Loaded = false;
+            try
             {
-                XmlNodeList items = channelNode.SelectNodes("item");
+                StreamReader rssFeed = new StreamReader(_webClient.OpenRead(rssURL));
+                _xmlDoc.Load(new XmlTextReader(rssFeed));
 
-                foreach (XmlNode itemNode in items)
+                XmlNode rootRss = _xmlDoc.SelectSingleNode("rss");
+                XmlNodeList channels = rootRss.ChildNodes;
+
+                foreach (XmlNode channelNode in channels)
                 {
-                    string title = itemNode.SelectSingleNode("title").InnerText;
-                    string description = itemNode.SelectSingleNode("description").InnerText;
-                    Entries.Add(new RSSItem(title, description));
+                    XmlNodeList items = channelNode.SelectNodes("item");
+
+                    foreach (XmlNode itemNode in items)
+                    {
+                        string title = itemNode.SelectSingleNode("title").InnerText;
+                        string description = itemNode.SelectSingleNode("description").InnerText;
+                        Entries.Add(new RSSItem(title, description));
+                    }
                 }
+                Loaded = true;
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogError("Problems loading RSS. " + e.Message);
             }
         }
     }

@@ -18,11 +18,12 @@ namespace AerSpeech
     {
         private SpeechSynthesizer _synth;
         Random rand;
+        public String LastSpelledWord;
 
         public AerTalk()
         {
             rand = new Random();
-
+            LastSpelledWord = "";
             _synth = new SpeechSynthesizer();
             _synth.SetOutputToDefaultAudioDevice();
         }
@@ -72,6 +73,19 @@ namespace AerSpeech
                     this.Say("Yes Commander?");
                     break;
                 default:
+                    break;
+            }
+        }
+        public void RandomNack()
+        {
+            int rsp = rand.Next(0, 3);
+            switch (rsp)
+            {
+                case 0:
+                    this.Say("I can't do that");
+                    break;
+                case 1:
+                    this.Say("Sorry, impossible");
                     break;
             }
         }
@@ -167,8 +181,16 @@ namespace AerSpeech
         public void SayFoundCommodity(EliteCommodity ec, EliteStation est)
         {
             string spellName = Regex.Replace(est.System.Name, @"(?<=.)(?!$)", ",");
-            this.Say("You can find " + ec.Name + ", at " + est.Name + ", in " + est.System.Name + ", Spelled " + spellName);
+            this.Say("You can find " + ec.Name + ", at " + est.Name + ", in " + est.System.Name + ", Spelled " + Spell(est.System.Name));
         }
+
+        public string Spell(string spellMe)
+        {
+            string spellName = Regex.Replace(spellMe, @"(?<=.)(?!$)", ",");
+            LastSpelledWord = spellMe;
+            return spellName;
+        }
+
         public void SayUnknownLocation()
         {
             this.Say(@"I don't know where we are. Please set location using 'set current system'");

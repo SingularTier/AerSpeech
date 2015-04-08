@@ -28,6 +28,7 @@ namespace AerSpeech
         private AerWiki _Wikipedia;
         private AerDB _Eddb;
         private AerTalk _Talk;
+        private AerKeyboard _Keyboard;
 
         private Dictionary<string, AerInputHandler> _EventRegistry;
 #endregion
@@ -58,6 +59,7 @@ namespace AerSpeech
             _Talk.SayInitializing();
             _GalnetEntry = 0;
             _JokeEntry = 0;
+            _Keyboard = new AerKeyboard();
             _GalnetRSS = new AerRSS("http://www.elitedangerous.com/news/galnet/rss");
             _JokeRSS = new AerRSS("http://www.jokes2go.com/jspq.xml");
             _Wikipedia = new AerWiki();
@@ -135,6 +137,15 @@ namespace AerSpeech
             _EventRegistry.Add("Instructions", Instruction_Handler);
             _EventRegistry.Add("AerStartListening", AerStartListening_Handler);
             _EventRegistry.Add("AerStopListening", AerStopListening_Handler);
+            _EventRegistry.Add("AerTypeLastSpelled", AerTypeLastSpelled_Handler);
+            _EventRegistry.Add("AerEraseField", AerEraseField_Handler);
+            _EventRegistry.Add("AerTypeDictation", AerTypeDictation_Handler);
+            _EventRegistry.Add("AerTypeNato", AerTypeNato_Handler);
+            _EventRegistry.Add("AerTypeSystem", AerTypeSystem_Handler);
+            _EventRegistry.Add("AerTypeCurrentSystem", AerTypeCurrentSystem_Handler); 
+            _EventRegistry.Add("AerSayCurrentSystem", AerSayCurrentSystem_Handler);
+            _EventRegistry.Add("AerSayCurrentVersion", AerSayCurrentVersion_Handler); 
+            
         }
 
 #region Grammar Rule Handlers
@@ -154,20 +165,31 @@ namespace AerSpeech
         }
         public void BrowseGalnet_Handler(RecognitionResult result)
         {
-            _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            if(_GalnetRSS.Loaded)
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            else
+                _Talk.RandomNack();
         }
         public void NextArticle_Handler(RecognitionResult result)
         {
-            _GalnetEntry++;
+            if (_GalnetRSS.Loaded)
+            {
+                _GalnetEntry++;
 
-            if (_GalnetEntry >= _GalnetRSS.Entries.Count)
-                _GalnetEntry = 0;
+                if (_GalnetEntry >= _GalnetRSS.Entries.Count)
+                    _GalnetEntry = 0;
 
-            _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            }
+            else
+                _Talk.RandomNack();
         }
         public void ReadArticle_Handler(RecognitionResult result)
         {
-            _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Description);
+            if (_GalnetRSS.Loaded)
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Description);
+            else
+                _Talk.RandomNack();
         }
         public void TellJoke_Handler(RecognitionResult result)
         {
@@ -360,18 +382,97 @@ namespace AerSpeech
         {
             _Talk.RandomAck();
         }
-
         public void AerStartListening_Handler(RecognitionResult result)
         {
             _Talk.SayStartListening();
             _Squelched = false;
         }
-
         public void AerStopListening_Handler(RecognitionResult result)
         {
             _Talk.SayStopListening();
             _Squelched = true;
         }
+        public void AerTypeLastSpelled_Handler(RecognitionResult result)
+        {
+            _Talk.RandomAck();
+            _Keyboard.Type(_Talk.LastSpelledWord);
+        }
+        public void AerEraseField_Handler(RecognitionResult result)
+        {
+            _Talk.RandomAck();
+            _Keyboard.ClearField();
+        }
+        public void AerTypeDictation_Handler(RecognitionResult result)
+        {
+            try
+            {
+                _Talk.RandomAck();
+                string SpokenText = result.Semantics["Data"].Value.ToString();
+                _Keyboard.Type(SpokenText);
+            }
+            catch (FormatException e)
+            {
+                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogException(e);
+            }
+        }
+        public void AerTypeNato_Handler(RecognitionResult result)
+        {
+            try
+            {
+                _Talk.RandomAck();
+                string SpokenText = result.Semantics["Data"].Value.ToString();
+                _Keyboard.Type(SpokenText);
+            }
+            catch (FormatException e)
+            {
+                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogException(e);
+            }
+        }
+        public void AerTypeSystem_Handler(RecognitionResult result)
+        {
+            try
+            {
+                _Talk.RandomAck();
+                int system_id = int.Parse(result.Semantics["Data"].Value.ToString());
+                EliteSystem es = _Eddb.GetSystem(system_id);
+                _Keyboard.Type(es.Name);
+            }
+            catch (FormatException e)
+            {
+                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogException(e);
+            }
+        }
+        public void AerTypeCurrentSystem_Handler(RecognitionResult result)
+        {
+            _Talk.RandomAck();
+            _Keyboard.Type(_LocalSystem.Name);
+        }
+        public void AerSayCurrentSystem_Handler(RecognitionResult result)
+        {
+            if (_LocalSystem != null)
+                _Talk.Say(_LocalSystem.Name);
+            else
+                _Talk.SayUnknownLocation();
+
+        }
+        public void AerSayCurrentVersion_Handler(RecognitionResult result)
+        {
+            _Talk.Say("1.1");
+
+        }
 #endregion
     }
 }
+

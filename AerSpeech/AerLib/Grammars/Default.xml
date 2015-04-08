@@ -24228,12 +24228,139 @@
         <tag> out.Command = "AerStopListening" </tag>
       </item>
       <item>
+        <ruleref uri="#AerTypeLastSpelled" />
+        <tag> out.Command = "AerTypeLastSpelled" </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerEraseField" />
+        <tag> out.Command = "AerEraseField" </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerTypeDictation" />
+        <tag> out.Command = "AerTypeDictation" </tag>
+        <tag> out.Data = rules.AerTypeDictation.SpokenWords </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerTypeNato" />
+        <tag> out.Command = "AerTypeNato" </tag>
+        <tag> out.Data = rules.AerTypeNato.Word </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerTypeSystem" />
+        <tag> out.Command = "AerTypeSystem" </tag>
+        <tag> out.Data = rules.systemNames.id </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerTypeCurrentSystem" />
+        <tag> out.Command = "AerTypeCurrentSystem" </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerSayCurrentSystem" />
+        <tag> out.Command = "AerSayCurrentSystem" </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerSayCurrentVersion" />
+        <tag> out.Command = "AerSayCurrentVersion" </tag>
+      </item>
+      <item>
         <ruleref uri="#CancelSpeech" />
         <tag> out.Command = "CancelSpeech" </tag>
       </item>
     </one-of>  
   </rule>
 
+  <rule id="AerSayCurrentVersion">
+    <item> What is your current version </item>
+  </rule>
+  
+  <rule id="AerSayCurrentSystem">
+    <one-of>
+      <item>What system am I in</item>
+      <item>
+        <item>What is the</item>
+        <one-of>
+          <item> current </item>
+          <item> local </item>
+        </one-of>
+        <item>system</item>
+      </item>
+      <item>
+        <item> Tell me the</item>
+        <one-of>
+          <item> current </item>
+          <item> local </item>
+        </one-of>
+        <item> system </item>
+      </item>
+    </one-of>
+  </rule>
+  
+  <rule id="AerTypeCurrentSystem">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item> type</item>
+    <one-of>
+      <item>current</item>
+      <item>local</item>
+    </one-of>
+    <item>system</item>
+  </rule>
+  
+  <rule id="AerTypeSystem">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item> type system </item>
+    <item>
+      <ruleref uri="#systemNames"/>
+      <tag>out.id = rules.systemNames.id;</tag>
+    </item>
+  </rule>
+
+  <rule id="AerTypeNato">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item> type spelling </item>
+    <item>
+      <ruleref uri="#BuildAWord"></ruleref>
+      <tag>out.Word = rules.BuildAWord.Word</tag>
+    </item>
+  </rule>
+  
+  <rule id="AerTypeDictation">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item> type dictation </item>
+    <ruleref uri="grammar:dictation" type="application/srgs+xml"/>
+    <tag> out.SpokenWords = rules.latest(); </tag>
+  </rule>
+  <rule id="AerTypeLastSpelled">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item>
+      type that
+    </item>
+    <item repeat="0-1"> for </item>
+    <item repeat="0-1"> me </item>
+  </rule>
+
+  <rule id="AerEraseField">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <one-of>
+      <item> erase </item>
+      <item> delete </item>
+    </one-of>
+    <item repeat="0-1"> this </item>
+    <item> field </item>
+    <item repeat="0-1"> for </item>
+    <item repeat="0-1"> me </item>
+  </rule>
   <rule id="AerStopListening">
     <item>Stop Listening</item>
   </rule>
@@ -24579,6 +24706,7 @@
       <item> hyphen <tag> out.Letter = "-"</tag> </item>
       <item> dash <tag> out.Letter = "-"</tag> </item>
       <item> dot <tag> out.Letter = "." </tag> </item>
+      <item> apostrophe <tag> out.Letter = "'" </tag> </item>
     </one-of>
   </rule>
 
