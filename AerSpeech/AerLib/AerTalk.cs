@@ -35,8 +35,14 @@ namespace AerSpeech
 
         public void SayInitializing()
         {
-            this.Say("Aer. Initializing. Welcome to the Audio Expository Response Interface, Better known as: Aer. For instructions, please say 'I need instructions'. Initialization complete.");
+            this.Say("I am initializing.");
         }
+
+        public void SayReady()
+        {
+            this.Say("I am ready.");
+        }
+
         public void SayBlocking(string text)
         {
             _synth.SpeakAsyncCancelAll();
@@ -97,7 +103,7 @@ namespace AerSpeech
             switch (rsp)
             {
                 case 0:
-                    this.Say("Unknown");
+                    this.Say("I don't know.");
                     break;
                 case 1:
                     this.Say("I do not know.");
@@ -106,11 +112,11 @@ namespace AerSpeech
         }
         public void SayIdentity()
         {
-            this.Say("I am Aerr, or the Audio Expository Response Interface. I interpret spoken commands in to actions. Unfortunately my capabilities are limited, but as more features are added you will find me indispensable.");
+            this.Say("I am Aer, the Audio Expository Response Interface.");
         }
         public void SayCreaterInfo()
         {
-            this.Say("I was developed by Commander Tei Lin in an effort to create a more robust Speech interface than what was available at the time.");
+            this.Say("I was developed by Commander Tei Lin. Commander Win-Epic modified my behaviour to make me less annoying.");
         }
         public void SayCapabilities()
         {
@@ -189,7 +195,7 @@ namespace AerSpeech
 
         public void SayStopListening()
         {
-            this.Say("I will no longer respond to commands until you say, 'Start listening'");
+            this.Say("I am now ignoring your commands.");
         }
 
         private string stripFormatting(string input)

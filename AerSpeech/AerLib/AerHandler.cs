@@ -58,7 +58,7 @@ namespace AerSpeech
             _Talk.SayInitializing();
             _GalnetEntry = 0;
             _JokeEntry = 0;
-            _GalnetRSS = new AerRSS("http://www.elitedangerous.com/news/galnet/rss");
+            // _GalnetRSS = new AerRSS("http://www.elitedangerous.com/en/galnet");
             _JokeRSS = new AerRSS("http://www.jokes2go.com/jspq.xml");
             _Wikipedia = new AerWiki();
             _Eddb = new AerDB();
@@ -77,6 +77,8 @@ namespace AerSpeech
             }
 
             RegisterDefaultHandlers();
+
+            _Talk.SayReady();
         }
 #endregion
 
@@ -119,9 +121,6 @@ namespace AerSpeech
             _EventRegistry.Add("AerQuery", AerQuery_Handler);
             _EventRegistry.Add("SearchWiki", SearchWiki_Handler);
             _EventRegistry.Add("BrowseGalnet", BrowseGalnet_Handler);
-            _EventRegistry.Add("NextArticle", NextArticle_Handler);
-            _EventRegistry.Add("ReadArticle", ReadArticle_Handler);
-            _EventRegistry.Add("TellJoke", TellJoke_Handler);
             _EventRegistry.Add("Instruction", Instruction_Handler);
             _EventRegistry.Add("SystemInfo", SystemInfo_Handler);
             _EventRegistry.Add("AerSetLocalSystem", AerSetLocalSystem_Handler);
@@ -135,9 +134,16 @@ namespace AerSpeech
             _EventRegistry.Add("Instructions", Instruction_Handler);
             _EventRegistry.Add("AerStartListening", AerStartListening_Handler);
             _EventRegistry.Add("AerStopListening", AerStopListening_Handler);
+            _EventRegistry.Add("CloseTerminal", AerCloseTerminal_Handler);
         }
 
 #region Grammar Rule Handlers
+
+        private void AerCloseTerminal_Handler(RecognitionResult result)
+        {
+            Environment.Exit(0);
+        }
+
         public void Greetings_Handler(RecognitionResult result)
         {
             _Talk.RandomGreetings();
@@ -154,7 +160,7 @@ namespace AerSpeech
         }
         public void BrowseGalnet_Handler(RecognitionResult result)
         {
-            _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            _Talk.Say("I can't do that, Frontier is being stupid.");
         }
         public void NextArticle_Handler(RecognitionResult result)
         {
