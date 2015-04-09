@@ -70,7 +70,7 @@ namespace AerSpeech
         {
             string systemsJson = pathToJsonFiles + @"systems.json";
             string commoditiesJson = pathToJsonFiles + @"commodities.json";
-            string stationsJson = pathToJsonFiles + @"stations_lite.json";
+            string stationsJson = pathToJsonFiles + @"stations.json";
 
             _Squelched = false;
             _Talk = voiceSynth;
