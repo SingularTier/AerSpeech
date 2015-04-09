@@ -9,14 +9,18 @@ using System.Windows.Forms;
 
 namespace AerSpeech
 {
+
     /// <summary>
     /// Debug encapsulation.
     /// </summary>
     public static class AerDebug
     {
+        public static string VERSION_NUMBER = "1.1p1";
+
         static bool _Init = false;
         static StreamWriter _LogFile;
-
+        
+        
         public static void Init()
         {
             _LogFile = new StreamWriter(Application.UserAppDataPath + "\\aer_output.log", false);

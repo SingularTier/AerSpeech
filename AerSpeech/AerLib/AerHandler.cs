@@ -123,6 +123,30 @@ namespace AerSpeech
                     numberOfSemantics++;
                 }
 
+                if (input.Semantics.ContainsKey("FromSystem") && input.Semantics["FromSystem"] != null)
+                {
+                    string systemName = input.Semantics["FromSystem"].Value.ToString();
+
+                    if (systemName.Equals("__local__"))
+                        output.FromSystem = _LocalSystem;
+                    else
+                        output.FromSystem = _Eddb.GetSystem(systemName);
+
+                    numberOfSemantics++;
+                }
+
+                if (input.Semantics.ContainsKey("ToSystem") && input.Semantics["ToSystem"] != null)
+                {
+                    string systemName = input.Semantics["ToSystem"].Value.ToString();
+
+                    if (systemName.Equals("__local__"))
+                        output.ToSystem = _LocalSystem;
+                    else
+                        output.ToSystem = _Eddb.GetSystem(systemName);
+
+                    numberOfSemantics++;
+                }
+
                 if (input.Semantics.ContainsKey("StationName") && input.Semantics["StationName"] != null)
                 {
                     if (output.System != null)
@@ -198,6 +222,7 @@ namespace AerSpeech
             _EventRegistry.Add("StationInfo", StationInfo_Handler);
             _EventRegistry.Add("SetLocalSystem", SetLocalSystem_Handler);
             _EventRegistry.Add("StarDistance", StarDistance_Handler);
+            _EventRegistry.Add("StarToStarDistance", StarToStarDistance_Handler);
             _EventRegistry.Add("AerCapabilities", AerCapabilities_Handler);
             _EventRegistry.Add("AerCreatorInfo", AerCreatorInfo_Handler);
             _EventRegistry.Add("AerIdentity", AerIdentity_Handler);
@@ -331,6 +356,19 @@ namespace AerSpeech
                 _Talk.RandomUnknownAck();
             }
         }
+
+        public void StarToStarDistance_Handler(AerRecognitionResult result)
+        {
+            if ((result.FromSystem != null) && (result.ToSystem != null))
+            {
+
+                _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(result.FromSystem, result.ToSystem)));
+            }
+            else
+            {
+                _Talk.RandomUnknownAck();
+            }
+        }
         public void AerCapabilities_Handler(AerRecognitionResult result)
         {
             _Talk.SayCapabilities();
@@ -447,7 +485,7 @@ namespace AerSpeech
         }
         public void SayCurrentVersion_Handler(AerRecognitionResult result)
         {
-            _Talk.Say("1.1");
+            _Talk.Say(AerDebug.VERSION_NUMBER);
 
         }
 #endregion

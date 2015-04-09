@@ -37089,6 +37089,12 @@
         <tag> out.SystemName = rules.SystemName.Name </tag>
       </item>
       <item>
+        <ruleref uri="#StarToStarDistance" />
+        <tag> out.Command = "StarToStarDistance" </tag>
+        <tag> out.FromSystem = rules.StarToStarDistance.From </tag>
+        <tag> out.ToSystem = rules.StarToStarDistance.To </tag>
+      </item>
+      <item>
         <ruleref uri="#AerQuery" />
         <tag> out.Command = "AerQuery" </tag>
       </item>
@@ -37170,6 +37176,19 @@
     </one-of>  
   </rule>
 
+  <rule id="StarToStarDistance">
+    <item> How far is </item>
+    <item>
+      <ruleref uri="#SystemName"/>
+      <tag>out.To = rules.SystemName.Name </tag>
+    </item>
+    <item> from </item>
+    <item>
+      <ruleref uri="#SystemName"/>
+      <tag>out.From = rules.SystemName.Name </tag>
+    </item>
+  </rule>
+  
   <rule id="StationDistance">
     <one-of>
       <item>
@@ -37372,6 +37391,7 @@
         <tag>out.Name = rules.BuildAWord.Word</tag>
       </item>
       <item>
+        <item repeat="0-1">the</item>
         <one-of>
           <item>current</item>
           <item>local</item>
