@@ -251,6 +251,9 @@ namespace AerSpeech
             _EventRegistry.Add("AerQuery", AerQuery_Handler);
             _EventRegistry.Add("SearchWiki", SearchWiki_Handler);
             _EventRegistry.Add("BrowseGalnet", BrowseGalnet_Handler);
+            _EventRegistry.Add("NextArticle", NextArticle_Handler);
+            _EventRegistry.Add("ReadArticle", ReadArticle_Handler);
+            _EventRegistry.Add("TellJoke", TellJoke_Handler); 
             _EventRegistry.Add("Instruction", Instruction_Handler);
             _EventRegistry.Add("SystemInfo", SystemInfo_Handler);
             _EventRegistry.Add("StationInfo", StationInfo_Handler);
