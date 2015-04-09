@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Globalization;
 using System.Speech;
 using System.Speech.Recognition;
@@ -13,31 +14,50 @@ namespace AerSpeechConsole
 {
     class Program
     {
-        static AerInput input;
-        static AerHandler inputHandler;
+        static AerInput _AerInput;
+        static AerHandler _AerHandler;
+        static bool _RunWorker;
 
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the A.E.R. Interface Console");
-            input = new AerInput();
-            inputHandler = new AerHandler();
+            _AerInput = new AerInput();
+            _AerHandler = new AerHandler();
             HandleInput();
         }
 
         static void HandleInput()
         {
-            bool quit = false;
-            while(!quit)
-            {
-                if(input.NewInput)
-                {
-                    input.NewInput = false;
-                    inputHandler.DefaultInput_Handler(input.LastResult);
-                }
+            _RunWorker = true;
+            Thread exeThread = new Thread(ExecuteThread);
+            exeThread.Start();
 
-                if(Console.KeyAvailable)
+            while (_RunWorker)
+            {
+                string input = Console.ReadLine();
+                input = input.ToLower();
+
+                if(input.Equals("quit"))
                 {
-                    quit = true;
+                    _RunWorker = false;
+                }
+#if DEBUG
+                if(input.Equals("compilegrammars"))
+                {
+                    _AerHandler.DBG_CompileGrammars();
+                }
+#endif
+            }
+        }
+
+        public static void ExecuteThread()
+        {
+            while (_RunWorker)
+            {
+                if (_AerInput.NewInput)
+                {
+                    _AerInput.NewInput = false;
+                    _AerHandler.DefaultInput_Handler(_AerInput.LastResult);
                 }
             }
         }

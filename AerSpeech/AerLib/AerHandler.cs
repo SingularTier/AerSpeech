@@ -63,20 +63,8 @@ namespace AerSpeech
             _GalnetRSS = new AerRSS("http://www.elitedangerous.com/news/galnet/rss");
             _JokeRSS = new AerRSS("http://www.jokes2go.com/jspq.xml");
             _Wikipedia = new AerWiki();
-            _Eddb = new AerDB();
+            _Eddb = new AerDB(systemsJson, stationsJson, commoditiesJson);
             _EventRegistry = new Dictionary<string, AerInputHandler>();
-
-
-            if (File.Exists(systemsJson) && File.Exists(commoditiesJson) && File.Exists(stationsJson))
-            {
-                _Eddb.ParseSystems(File.ReadAllText(systemsJson));
-                _Eddb.ParseCommodities(File.ReadAllText(commoditiesJson));
-                _Eddb.ParseStations(File.ReadAllText(stationsJson));
-            }
-            else
-            {
-                AerDebug.LogError("Could not find JSON files!");
-            }
 
             RegisterDefaultHandlers();
         }
@@ -126,27 +114,32 @@ namespace AerSpeech
             _EventRegistry.Add("TellJoke", TellJoke_Handler);
             _EventRegistry.Add("Instruction", Instruction_Handler);
             _EventRegistry.Add("SystemInfo", SystemInfo_Handler);
-            _EventRegistry.Add("AerSetLocalSystem", AerSetLocalSystem_Handler);
-            _EventRegistry.Add("AerDistance", AerDistance_Handler);
+            _EventRegistry.Add("SetLocalSystem", SetLocalSystem_Handler);
+            _EventRegistry.Add("StarDistance", StarDistance_Handler);
             _EventRegistry.Add("AerCapabilities", AerCapabilities_Handler);
             _EventRegistry.Add("AerCreatorInfo", AerCreatorInfo_Handler);
             _EventRegistry.Add("AerIdentity", AerIdentity_Handler);
-            _EventRegistry.Add("AerPriceCheck", AerPriceCheck_Handler);
-            _EventRegistry.Add("AerFindCommodity", AerFindCommodity_Handler);
-            _EventRegistry.Add("CancelSpeech", AerCancelSpeech_Handler);
+            _EventRegistry.Add("PriceCheck", PriceCheck_Handler);
+            _EventRegistry.Add("FindCommodity", FindCommodity_Handler);
+            _EventRegistry.Add("CancelSpeech", CancelSpeech_Handler);
             _EventRegistry.Add("Instructions", Instruction_Handler);
-            _EventRegistry.Add("AerStartListening", AerStartListening_Handler);
-            _EventRegistry.Add("AerStopListening", AerStopListening_Handler);
-            _EventRegistry.Add("AerTypeLastSpelled", AerTypeLastSpelled_Handler);
-            _EventRegistry.Add("AerEraseField", AerEraseField_Handler);
-            _EventRegistry.Add("AerTypeDictation", AerTypeDictation_Handler);
-            _EventRegistry.Add("AerTypeNato", AerTypeNato_Handler);
-            _EventRegistry.Add("AerTypeSystem", AerTypeSystem_Handler);
-            _EventRegistry.Add("AerTypeCurrentSystem", AerTypeCurrentSystem_Handler); 
-            _EventRegistry.Add("AerSayCurrentSystem", AerSayCurrentSystem_Handler);
-            _EventRegistry.Add("AerSayCurrentVersion", AerSayCurrentVersion_Handler); 
-            
+            _EventRegistry.Add("StartListening", StartListening_Handler);
+            _EventRegistry.Add("StopListening", StopListening_Handler);
+            _EventRegistry.Add("TypeLastSpelled", TypeLastSpelled_Handler);
+            _EventRegistry.Add("EraseField", EraseField_Handler);
+            _EventRegistry.Add("TypeDictation", TypeDictation_Handler);
+            _EventRegistry.Add("TypeNato", TypeNato_Handler);
+            _EventRegistry.Add("TypeSystem", TypeSystem_Handler);
+            _EventRegistry.Add("TypeCurrentSystem", TypeCurrentSystem_Handler); 
+            _EventRegistry.Add("SayCurrentSystem", SayCurrentSystem_Handler);
+            _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler); 
         }
+#region DebugPriceCheck
+        public void DBG_CompileGrammars()
+        {
+            _Eddb.DBG_CompileGrammars();
+        }
+#endregion
 
 #region Grammar Rule Handlers
         public void Greetings_Handler(RecognitionResult result)
@@ -207,21 +200,9 @@ namespace AerSpeech
             EliteSystem es = null;
             try
             {
-                int idvalid = int.Parse(result.Semantics["IDValid"].Value.ToString());
-                int system_id;
-
-                if (idvalid == 1)
-                {
-                    system_id = int.Parse(result.Semantics["id"].Value.ToString());
-                    es = _Eddb.GetSystem(system_id);
-                }
-                else
-                {
-                    string systemName = result.Semantics["SystemName"].Value.ToString();
-                    Console.WriteLine("SystemName=" + systemName);
-                    es = _Eddb.GetSystem(systemName);
-                }
-
+                string systemName = result.Semantics["SystemName"].Value.ToString();
+                AerDebug.Log("SystemName=" + systemName);
+                es = _Eddb.GetSystem(systemName);
 
                 if (es != null)
                     _Talk.SaySystem(es);
@@ -237,26 +218,15 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerSetLocalSystem_Handler(RecognitionResult result)
+        public void SetLocalSystem_Handler(RecognitionResult result)
         {
             EliteSystem es = null;
 
             try
             {
-                int idvalid = int.Parse(result.Semantics["IDValid"].Value.ToString());
-                int system_id;
-
-                if (idvalid == 1)
-                {
-                    system_id = int.Parse(result.Semantics["id"].Value.ToString());
-                    es = _Eddb.GetSystem(system_id);
-                }
-                else
-                {
-                    string systemName = result.Semantics["SystemName"].Value.ToString();
-                    Console.WriteLine("SystemName=" + systemName);
-                    es = _Eddb.GetSystem(systemName);
-                }
+                string systemName = result.Semantics["SystemName"].Value.ToString();
+                AerDebug.Log("SystemName=" + systemName);
+                es = _Eddb.GetSystem(systemName);
 
                 if (es != null)
                 {
@@ -275,26 +245,15 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerDistance_Handler(RecognitionResult result)
+        public void StarDistance_Handler(RecognitionResult result)
         {
             EliteSystem es = null;
 
             try 
             {
-                int idvalid = int.Parse(result.Semantics["IDValid"].Value.ToString());
-                int system_id;
-
-                if (idvalid == 1)
-                {
-                    system_id = int.Parse(result.Semantics["id"].Value.ToString());
-                    es = _Eddb.GetSystem(system_id);
-                }
-                else
-                {
-                    string systemName = result.Semantics["SystemName"].Value.ToString();
-                    Console.WriteLine("SystemName=" + systemName);
-                    es = _Eddb.GetSystem(systemName);
-                }
+                string systemName = result.Semantics["SystemName"].Value.ToString();
+                AerDebug.Log("SystemName=" + systemName);
+                es = _Eddb.GetSystem(systemName);
 
                 if ((es != null) && (_LocalSystem != null))
                 {
@@ -327,7 +286,7 @@ namespace AerSpeech
         {
             _Talk.SayIdentity();
         }
-        public void AerPriceCheck_Handler(RecognitionResult result)
+        public void PriceCheck_Handler(RecognitionResult result)
         {
             try
             {
@@ -351,7 +310,7 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerFindCommodity_Handler(RecognitionResult result)
+        public void FindCommodity_Handler(RecognitionResult result)
         {
             EliteStation est;
             try
@@ -378,31 +337,32 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerCancelSpeech_Handler(RecognitionResult result)
+        public void CancelSpeech_Handler(RecognitionResult result)
         {
             _Talk.RandomAck();
         }
-        public void AerStartListening_Handler(RecognitionResult result)
+        public void StartListening_Handler(RecognitionResult result)
         {
-            _Talk.SayStartListening();
             _Squelched = false;
+            _Talk.SayStartListening();
+
         }
-        public void AerStopListening_Handler(RecognitionResult result)
+        public void StopListening_Handler(RecognitionResult result)
         {
-            _Talk.SayStopListening();
             _Squelched = true;
+            _Talk.SayStopListening();
         }
-        public void AerTypeLastSpelled_Handler(RecognitionResult result)
+        public void TypeLastSpelled_Handler(RecognitionResult result)
         {
             _Talk.RandomAck();
             _Keyboard.Type(_Talk.LastSpelledWord);
         }
-        public void AerEraseField_Handler(RecognitionResult result)
+        public void EraseField_Handler(RecognitionResult result)
         {
             _Talk.RandomAck();
             _Keyboard.ClearField();
         }
-        public void AerTypeDictation_Handler(RecognitionResult result)
+        public void TypeDictation_Handler(RecognitionResult result)
         {
             try
             {
@@ -419,7 +379,7 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerTypeNato_Handler(RecognitionResult result)
+        public void TypeNato_Handler(RecognitionResult result)
         {
             try
             {
@@ -436,7 +396,7 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerTypeSystem_Handler(RecognitionResult result)
+        public void TypeSystem_Handler(RecognitionResult result)
         {
             try
             {
@@ -454,12 +414,12 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
-        public void AerTypeCurrentSystem_Handler(RecognitionResult result)
+        public void TypeCurrentSystem_Handler(RecognitionResult result)
         {
             _Talk.RandomAck();
             _Keyboard.Type(_LocalSystem.Name);
         }
-        public void AerSayCurrentSystem_Handler(RecognitionResult result)
+        public void SayCurrentSystem_Handler(RecognitionResult result)
         {
             if (_LocalSystem != null)
                 _Talk.Say(_LocalSystem.Name);
@@ -467,7 +427,7 @@ namespace AerSpeech
                 _Talk.SayUnknownLocation();
 
         }
-        public void AerSayCurrentVersion_Handler(RecognitionResult result)
+        public void SayCurrentVersion_Handler(RecognitionResult result)
         {
             _Talk.Say("1.1");
 
