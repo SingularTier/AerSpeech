@@ -176,7 +176,7 @@ namespace AerSpeech
 
             SendInput(1, InputData, Marshal.SizeOf(typeof(INPUT)));
 
-            AerDebug.Log("SendKey result = " + Marshal.GetLastWin32Error());
+            //AerDebug.Log("SendKey result = " + Marshal.GetLastWin32Error());
         }
 
     }
