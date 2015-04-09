@@ -11,6 +11,9 @@ using Newtonsoft.Json.Linq;
 
 namespace AerSpeech
 {
+    /// <summary>
+    /// Defines an Elite System
+    /// </summary>
     public class EliteSystem
     {
         public string Name;
@@ -33,6 +36,9 @@ namespace AerSpeech
             Stations = new List<EliteStation>();
         }
     }
+    /// <summary>
+    /// Defines an Elite Station
+    /// </summary>
     public class EliteStation
     {
         public string Name;
@@ -68,6 +74,10 @@ namespace AerSpeech
             Economies = new List<string>();
         }
     }
+
+    /// <summary>
+    /// Defines an Elite commodity
+    /// </summary>
     public class EliteCommodity
     {
         public string Name;
@@ -75,6 +85,9 @@ namespace AerSpeech
         public int AveragePrice;
     }
 
+    /// <summary>
+    /// Defines an Elite Listing
+    /// </summary>
     public class EliteListing
     {
         public int id;
@@ -139,6 +152,10 @@ namespace AerSpeech
 //TODO: Make AerEddb or AerJSON and create an interface between AerDB and it. -SingularTier
 //WARNING: THE CODE IN THE JSON PARSING REGION WILL MAKE YOU VOMIT.
 #region JSON Parsing
+        /// <summary>
+        /// Populates the System Registry with data from the eddb json string
+        /// </summary>
+        /// <param name="json">Json string of EDDB systems.json data</param>
         private void _ParseSystems(string json)
         {
             AerDebug.Log("Loading Systems...");
@@ -178,6 +195,10 @@ namespace AerSpeech
             }
             timer.Stop();
         }
+        /// <summary>
+        /// Populates the Commodity Registry with data from the eddb json string
+        /// </summary>
+        /// <param name="json">Json string of EDDB commodities.json data</param>
         private void _ParseCommodities(string json)
         {
             AerDebug.Log("Loading Commodities...");
@@ -207,6 +228,10 @@ namespace AerSpeech
 
             timer.Stop();
         }
+        /// <summary>
+        /// Populates the Station Data with data from the eddb json string
+        /// </summary>
+        /// <param name="json">Json string of EDDB stations.json data</param>
         private void _ParseStations(string json)
         {
             JsonTextReader jsonReader = new JsonTextReader(new StringReader(json));
@@ -245,6 +270,14 @@ namespace AerSpeech
                 AerDebug.LogError("Malformed JSON parsing - arrayDepth == " + arrayDepth + " at end of parse");
             }
         }
+
+
+        /// <summary>
+        /// Returns an EliteStation from a EDDB Json Object.
+        /// JsonReader MUST currently point to the StartObject token for the Station object.
+        /// </summary>
+        /// <param name="jsonReader">JsonReader populated with the Station Object</param>
+        /// <returns>Populated EliteStation data</returns>
         private EliteStation _ParseJsonStation(JsonTextReader jsonReader)
         {
             EliteStation es = new EliteStation();
@@ -346,6 +379,13 @@ namespace AerSpeech
             return es;
             
         }
+
+        /// <summary>
+        /// Returns a List of EliteListing objects from a EDDB Json Array.
+        /// JsonReader MUST currently point to the StartArray token for the Listing Array.
+        /// </summary>
+        /// <param name="jsonReader">JsonReader populated with the Listing Array</param>
+        /// <returns>List of populated EliteListing Data</returns>
         private List<EliteListing> _ParseJsonListing(JsonTextReader jsonReader)
         {
             List<EliteListing> listings = new List<EliteListing>();
@@ -411,6 +451,14 @@ namespace AerSpeech
             }
             return listings;
         }
+        /// <summary>
+        /// Returns a List of EliteCommodity objects from a EDDB Json Array.
+        /// JsonReader MUST currently point to the StartArray token for the Commodity Array.
+        /// Pulls Commodity Data out of the CommodityRegistry
+        /// Used for import/export/prohibited commodity lists
+        /// </summary>
+        /// <param name="jsonReader">JsonReader populated with the Commodity Array</param>
+        /// <returns>List of populated EliteCommodity Data</returns>
         private List<EliteCommodity> _ParseJsonCommodities(JsonTextReader jsonReader)
         {
             List<EliteCommodity> commodities = new List<EliteCommodity>();
@@ -439,6 +487,14 @@ namespace AerSpeech
 
             return commodities;
         }
+
+        /// <summary>
+        /// Returns a List of strings from a EDDB Json Array.
+        /// JsonReader MUST currently point to the StartArray token for the string Array.
+        /// Used to pull Economies out of the economy list in station data.
+        /// </summary>
+        /// <param name="jsonReader">JsonReader populated with the string Array</param>
+        /// <returns>List of strings that define the station economies</returns>
         private List<string> _ParseJsonEconomies(JsonTextReader jsonReader)
         {
             List<string> econs = new List<string>();
