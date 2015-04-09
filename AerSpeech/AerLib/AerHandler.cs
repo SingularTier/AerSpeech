@@ -29,6 +29,9 @@ namespace AerSpeech
         private AerDB _Eddb;
         private AerTalk _Talk;
 
+        private EliteStation _LastStation;
+        private EliteSystem _LastSystem;
+
         private Dictionary<string, AerInputHandler> _EventRegistry;
 #endregion
 
@@ -134,7 +137,8 @@ namespace AerSpeech
             _EventRegistry.Add("Instructions", Instruction_Handler);
             _EventRegistry.Add("AerStartListening", AerStartListening_Handler);
             _EventRegistry.Add("AerStopListening", AerStopListening_Handler);
-            _EventRegistry.Add("CloseTerminal", AerCloseTerminal_Handler);
+
+            _EventRegistry.Add("AerMoreInfo", AerMoreInfo_Handler);
         }
 
 #region Grammar Rule Handlers
@@ -197,7 +201,15 @@ namespace AerSpeech
                 if (idvalid == 1)
                 {
                     system_id = int.Parse(result.Semantics["id"].Value.ToString());
-                    es = _Eddb.GetSystem(system_id);
+
+                    if (system_id == 0)
+                    {
+                        es = _LastSystem;
+                    }
+                    else
+                    {
+                        es = _Eddb.GetSystem(system_id);
+                    }
                 }
                 else
                 {
@@ -208,7 +220,10 @@ namespace AerSpeech
 
 
                 if (es != null)
+                {
                     _Talk.SaySystem(es);
+                    _LastSystem = es;
+                }
                 else
                     _Talk.RandomUnknownAck();
             }
@@ -233,7 +248,14 @@ namespace AerSpeech
                 if (idvalid == 1)
                 {
                     system_id = int.Parse(result.Semantics["id"].Value.ToString());
-                    es = _Eddb.GetSystem(system_id);
+                    if (system_id == 0)
+                    {
+                        es = _LastSystem;
+                    }
+                    else
+                    {
+                        es = _Eddb.GetSystem(system_id);
+                    }
                 }
                 else
                 {
@@ -246,6 +268,7 @@ namespace AerSpeech
                 {
                     _Talk.SaySetSystem(es);
                     _LocalSystem = es;
+                    _LastSystem = es;
                 }
                 else
                     _Talk.RandomUnknownAck();
@@ -271,7 +294,14 @@ namespace AerSpeech
                 if (idvalid == 1)
                 {
                     system_id = int.Parse(result.Semantics["id"].Value.ToString());
-                    es = _Eddb.GetSystem(system_id);
+                    if (system_id == 0)
+                    {
+                        es = _LastSystem;
+                    }
+                    else
+                    {
+                        es = _Eddb.GetSystem(system_id);
+                    }
                 }
                 else
                 {
@@ -282,7 +312,7 @@ namespace AerSpeech
 
                 if ((es != null) && (_LocalSystem != null))
                 {
-
+                    _LastSystem = es;
                     _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(es, _LocalSystem)));
                 }
                 else
@@ -299,6 +329,65 @@ namespace AerSpeech
                 AerDebug.LogException(e);
             }
         }
+
+        public void AerSetSystem_Handler(RecognitionResult result)
+        {
+            EliteSystem es = null;
+
+            try
+            {
+                int idvalid = int.Parse(result.Semantics["IDValid"].Value.ToString());
+                int system_id;
+
+                if (idvalid == 1)
+                {
+                    system_id = int.Parse(result.Semantics["id"].Value.ToString());
+                    if (system_id == 0)
+                    {
+                        es = _LastSystem;
+                    }
+                    else
+                    {
+                        es = _Eddb.GetSystem(system_id);
+                    }
+                }
+                else
+                {
+                    string systemName = result.Semantics["SystemName"].Value.ToString();
+                    Console.WriteLine("SystemName=" + systemName);
+                    es = _Eddb.GetSystem(systemName);
+                }
+
+                if (es != null)
+                {
+                    _Talk.SaySelectSystem(es);
+                    _LastSystem = es;
+                }
+                else
+                    _Talk.RandomUnknownAck();
+            }
+            catch (FormatException e)
+            {
+                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogException(e);
+            }
+        }
+
+        public void AerMoreInfo_Handler(RecognitionResult result)
+        {
+            if (_LastStation != null)
+            {
+                _Talk.SayMoreInfo(_LastStation);
+            }
+            else
+            {
+                _Talk.Say("You don't have a station selected.");
+            }
+        }
+
         public void AerCapabilities_Handler(RecognitionResult result)
         {
             _Talk.SayCapabilities();
@@ -346,7 +435,11 @@ namespace AerSpeech
                 {
                     est = _Eddb.FindCommodity(commodity_id, _LocalSystem, 250);
                     if (est != null)
+                    {
                         _Talk.SayFoundCommodity(_Eddb.GetCommodity(commodity_id), est);
+                        _LastStation = est;
+                        _LastSystem = est.System;
+                    }
                     else
                         _Talk.SayCannotFindCommodity(_Eddb.GetCommodity(commodity_id));
                 }

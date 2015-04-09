@@ -4,6 +4,7 @@
   
 	<rule id="systemNames">
 		<one-of>
+			<item> That system <tag> out.id=0 </tag></item>
 			<item> 1 G. Caeli <tag> out.id=1 </tag></item>
 			<item> 1 Geminorum <tag> out.id=2 </tag></item>
 			<item> 1 Hydrae <tag> out.id=3 </tag></item>
@@ -24194,6 +24195,10 @@
         <tag> out.id = rules.AerDistance.id; out.IDValid = rules.AerDistance.IDValid; out.SystemName = rules.AerDistance.SystemName </tag>
       </item>
       <item>
+        <ruleref uri="#AerMoreInfo" />
+        <tag> out.Command = "AerMoreInfo" </tag>
+      </item>
+      <item>
         <ruleref uri="#AerQuery" />
         <tag> out.Command = "AerQuery" </tag>
       </item>
@@ -24235,11 +24240,20 @@
   </rule>
 
   <rule id="AerStopListening">
+    <one-of>
+    <item>Leave me alone</item>
+    <item>Ignore me</item>
+    <item>Thank you</item>
     <item>Stop Listening</item>
+    </one-of>
   </rule>
 
   <rule id="AerStartListening">
-    <item>Start Listening</item>
+    <one-of>
+      <item>Start Listening</item>
+      <item>Listen</item>
+      <item>Hey listen</item>
+    </one-of>
   </rule>
   
   <rule id="AerSetLocalSystem">
@@ -24295,6 +24309,14 @@
       </item>
     </one-of>
     <item repeat="0-1">from here</item>
+  </rule>
+
+  <rule id="AerMoreInfo">
+    <one-of>
+      <item>Tell me more</item>
+      <item>More info</item>
+      <item>More informations</item>
+    </one-of>
   </rule>
 
   <rule id="AerSearchPrefix">

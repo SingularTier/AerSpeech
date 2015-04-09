@@ -175,6 +175,24 @@ namespace AerSpeech
             string spellName = Regex.Replace(est.System.Name, @"(?<=.)(?!$)", ",");
             this.Say("You can find " + ec.Name + ", at " + est.Name + ", in " + est.System.Name + ", Spelled " + spellName);
         }
+        public void SayMoreInfo(EliteStation est)
+        {
+            StringBuilder output = new StringBuilder();
+
+            string spellName = Regex.Replace(est.System.Name, @"(?<=.)(?!$)", ",");
+
+            output.Append(est.Name + " is " + est.DistanceFromStar + " light seconds away from its star. ");
+            if (est.HasBlackmarket)
+                output.Append("It has a black market. ");
+            if (est.HasOutfitting)
+                output.Append("It has outfitting. ");
+            if (est.HasRefuel)
+                output.Append("It has refueling. ");
+            if (est.HasShipyard)
+                output.Append("It has a shipyard. ");
+
+            this.Say(output.ToString());
+        }
         public void SayUnknownLocation()
         {
             this.Say(@"I don't know where we are. Please set location using 'set current system'");
@@ -197,6 +215,10 @@ namespace AerSpeech
         {
             this.Say("I am now ignoring your commands.");
         }
+        public void SaySelectSystem(EliteSystem es)
+        {
+            this.Say("Selected " + es.Name);
+        }
 
         private string stripFormatting(string input)
         {
@@ -211,6 +233,7 @@ namespace AerSpeech
 
             return output;
         }
+
     }
 
 }
