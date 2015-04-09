@@ -243,10 +243,12 @@ namespace AerSpeech
             _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler); 
         }
 #region DebugPriceCheck
+#if DEBUG
         public void DBG_CompileGrammars()
         {
             _Eddb.DBG_CompileGrammars();
         }
+#endif
 #endregion
 
         //TODO: Abstract all the boilerplate semantic value code in to the
