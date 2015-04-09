@@ -349,6 +349,26 @@ namespace AerSpeech
 #endregion
 
 #region Utility Methods
+        public EliteStation GetStation(EliteSystem es, string stationName)
+        {
+            List<EliteStation> matchingStations;
+
+            var est = from station in es.Stations
+                               where station.Name.Equals(stationName)
+                               select station;
+
+            matchingStations = est.ToList<EliteStation>();
+
+            if (matchingStations.Count > 1)
+            {
+                AerDebug.LogError(@"Found " + matchingStations.Count +" stations with the name '" + stationName + "' in system '" + es.Name + "'");
+            }
+            if (matchingStations.Count > 0)
+                return matchingStations[0];
+            else
+                return null;
+        }
+
         public int GetPrice(int commodity_id)
         {
             EliteCommodity ec = GetCommodity(commodity_id);

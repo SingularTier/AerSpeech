@@ -16,6 +16,17 @@ namespace AerSpeech
     /// <param name="result"></param>
     public delegate void AerInputHandler(RecognitionResult result);
 
+    public class AerRecognitionResult
+    {
+        public double Confidence;
+        public EliteStation Station;
+        public EliteSystem System;
+        public EliteCommodity Commodity;
+
+        public SemanticValue Semantics;
+
+    }
+
     /// <summary>
     /// Default Handler for incomming speech results. Maintains a registry of handlers keyed by command.
     /// TODO: Make an interface.
@@ -114,6 +125,7 @@ namespace AerSpeech
             _EventRegistry.Add("TellJoke", TellJoke_Handler);
             _EventRegistry.Add("Instruction", Instruction_Handler);
             _EventRegistry.Add("SystemInfo", SystemInfo_Handler);
+            _EventRegistry.Add("StationInfo", StationInfo_Handler);
             _EventRegistry.Add("SetLocalSystem", SetLocalSystem_Handler);
             _EventRegistry.Add("StarDistance", StarDistance_Handler);
             _EventRegistry.Add("AerCapabilities", AerCapabilities_Handler);
@@ -130,7 +142,8 @@ namespace AerSpeech
             _EventRegistry.Add("TypeDictation", TypeDictation_Handler);
             _EventRegistry.Add("TypeNato", TypeNato_Handler);
             _EventRegistry.Add("TypeSystem", TypeSystem_Handler);
-            _EventRegistry.Add("TypeCurrentSystem", TypeCurrentSystem_Handler); 
+            _EventRegistry.Add("TypeCurrentSystem", TypeCurrentSystem_Handler);
+            _EventRegistry.Add("StationDistance", StationDistance_Handler);
             _EventRegistry.Add("SayCurrentSystem", SayCurrentSystem_Handler);
             _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler); 
         }
@@ -140,6 +153,11 @@ namespace AerSpeech
             _Eddb.DBG_CompileGrammars();
         }
 #endregion
+
+        //TODO: Abstract all the boilerplate semantic value code in to the
+        // RecognitionResult class, or a subclass of it. This would include
+        // values such as distance, stations, systems, ids. There's a lot of
+        // copy pasting going on here. -SingularTier
 
 #region Grammar Rule Handlers
         public void Greetings_Handler(RecognitionResult result)
@@ -202,7 +220,11 @@ namespace AerSpeech
             {
                 string systemName = result.Semantics["SystemName"].Value.ToString();
                 AerDebug.Log("SystemName=" + systemName);
-                es = _Eddb.GetSystem(systemName);
+
+                if (systemName.Equals("__local__"))
+                    es = _LocalSystem;
+                else
+                    es = _Eddb.GetSystem(systemName);
 
                 if (es != null)
                     _Talk.SaySystem(es);
@@ -212,6 +234,42 @@ namespace AerSpeech
             catch (FormatException e)
             {
                 AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogException(e);
+            }
+        }
+        public void StationInfo_Handler(RecognitionResult result)
+        {
+            try
+            {
+                string systemName = result.Semantics["SystemName"].Value.ToString();
+                string stationName = result.Semantics["StationName"].Value.ToString();
+
+                EliteSystem es;
+
+                if (systemName.Equals("__local__"))
+                    es = _LocalSystem;
+                else
+                    es = _Eddb.GetSystem(systemName);
+
+                if (es != null)
+                {
+                    EliteStation est = _Eddb.GetStation(es, stationName);
+                    if (est != null)
+                    {
+                        _Talk.SayStation(est);
+                    }
+                    else
+                    {
+                        _Talk.SayUnknownStation();
+                    }
+                }
+                else
+                {
+                    _Talk.SayUnknownSystem();
+                }
             }
             catch (Exception e)
             {
@@ -253,7 +311,11 @@ namespace AerSpeech
             {
                 string systemName = result.Semantics["SystemName"].Value.ToString();
                 AerDebug.Log("SystemName=" + systemName);
-                es = _Eddb.GetSystem(systemName);
+
+                if (systemName.Equals("__local__"))
+                    es = _LocalSystem;
+                else
+                    es = _Eddb.GetSystem(systemName);
 
                 if ((es != null) && (_LocalSystem != null))
                 {
@@ -401,13 +463,15 @@ namespace AerSpeech
             try
             {
                 _Talk.RandomAck();
-                int system_id = int.Parse(result.Semantics["Data"].Value.ToString());
-                EliteSystem es = _Eddb.GetSystem(system_id);
+                string systemName = result.Semantics["SystemName"].Value.ToString();
+                EliteSystem es;
+
+                if (systemName.Equals("__local__"))
+                    es = _LocalSystem;
+                else
+                    es = _Eddb.GetSystem(systemName);
+
                 _Keyboard.Type(es.Name);
-            }
-            catch (FormatException e)
-            {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
             }
             catch (Exception e)
             {
@@ -418,6 +482,42 @@ namespace AerSpeech
         {
             _Talk.RandomAck();
             _Keyboard.Type(_LocalSystem.Name);
+        }
+        public void StationDistance_Handler(RecognitionResult result)
+        {
+            try
+            {
+                string systemName = result.Semantics["SystemName"].Value.ToString();
+                string stationName = result.Semantics["StationName"].Value.ToString();
+
+                EliteSystem es;
+
+                if (systemName.Equals("__local__"))
+                    es = _LocalSystem;
+                else
+                    es = _Eddb.GetSystem(systemName);
+
+                if(es != null)
+                {
+                    EliteStation est = _Eddb.GetStation(es, stationName);
+                    if(est != null)
+                    {
+                        _Talk.SayStationDistance(est);
+                    }
+                    else
+                    {
+                        _Talk.SayUnknownStation();
+                    }
+                }
+                else
+                {
+                    _Talk.SayUnknownSystem();
+                }
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogException(e);
+            }
         }
         public void SayCurrentSystem_Handler(RecognitionResult result)
         {

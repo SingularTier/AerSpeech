@@ -37072,6 +37072,12 @@
         <tag> out.Command = "SystemInfo" </tag>
         <tag> out.SystemName = rules.SystemName.Name </tag>
       </item>
+       <item>
+        <ruleref uri="#StationInfo" />
+        <tag> out.Command = "StationInfo" </tag>
+        <tag> out.SystemName = rules.SystemName.Name </tag>
+        <tag> out.StationName = rules.StationName.Name </tag>
+      </item>
       <item>
         <ruleref uri="#SetLocalSystem" />
         <tag> out.Command = "SetLocalSystem" </tag>
@@ -37137,7 +37143,7 @@
       <item>
         <ruleref uri="#TypeSystem" />
         <tag> out.Command = "TypeSystem" </tag>
-        <tag> out.Data = rules.SystemName.Name </tag>
+        <tag> out.SystemName = rules.SystemName.Name </tag>
       </item>
       <item>
         <ruleref uri="#TypeCurrentSystem" />
@@ -37146,6 +37152,12 @@
       <item>
         <ruleref uri="#SayCurrentSystem" />
         <tag> out.Command = "SayCurrentSystem" </tag>
+      </item>
+      <item>
+        <ruleref uri="#StationDistance" />
+        <tag> out.Command = "StationDistance" </tag>
+        <tag> out.StationName = rules.StationName.Name</tag>
+        <tag> out.SystemName  = rules.SystemName.Name</tag>
       </item>
       <item>
         <ruleref uri="#SayCurrentVersion" />
@@ -37158,6 +37170,52 @@
     </one-of>  
   </rule>
 
+  <rule id="StationDistance">
+    <one-of>
+      <item>
+        <item> How far is </item>
+        <ruleref uri="#StationName"/>
+        <item> from </item>
+        <item repeat="0-1">
+          <item> the </item>
+          <one-of>
+            <item>star</item>
+            <item>sun</item>
+          </one-of>
+          <item>in</item>
+        </item>
+        <ruleref uri="#SystemName"/>
+      </item>
+      <item>
+        <item> in  </item>
+        <ruleref uri="#SystemName"/>
+        <item> how far is </item>
+        <ruleref uri="#StationName"/>   
+        <item repeat="0-1">
+          <item> the </item>
+          <one-of>
+            <item>star</item>
+            <item>sun</item>
+          </one-of>
+        </item>
+      </item>
+    </one-of>
+  </rule>
+  
+  <rule id="StationInfo">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item>Information on</item>
+    <item>
+      <ruleref uri="#StationName" />
+    </item>
+    <item>in</item>
+    <item>
+      <ruleref uri="#SystemName" />
+    </item>
+  </rule> 
+  
   <rule id="SayCurrentVersion">
     <one-of>
       <item> What version are you? </item>
@@ -37209,7 +37267,7 @@
     </item>
     <item> type system </item>
     <item>
-      <ruleref uri="#systems"/>
+      <ruleref uri="#SystemName"/>
     </item>
   </rule>
 
@@ -37313,6 +37371,14 @@
         <ruleref uri="#BuildAWord"></ruleref>
         <tag>out.Name = rules.BuildAWord.Word</tag>
       </item>
+      <item>
+        <one-of>
+          <item>current</item>
+          <item>local</item>
+        </one-of>
+        <item> system </item>
+        <tag>out.Name = "__local__"</tag>
+      </item>
     </one-of>   
   </rule>  
   
@@ -37321,6 +37387,7 @@
       <item>
         <ruleref uri="#stations"/>
         <tag>out.Name = rules.stations.Name;</tag>
+        <item repeat="0-1">station</item>
       </item>
       <item>
         <ruleref uri="#BuildAWord"></ruleref>
@@ -37329,6 +37396,7 @@
     </one-of>      
   </rule>
     
+
   <rule id="SearchPrefix">
     <one-of>
       <item> find </item>

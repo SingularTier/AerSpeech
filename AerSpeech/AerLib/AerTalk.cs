@@ -214,6 +214,76 @@ namespace AerSpeech
             this.Say("I will no longer respond to commands until you say, 'Start listening'");
         }
 
+        public void SayStationDistance(EliteStation est)
+        {
+            this.Say(est.Name + " is " + est.DistanceFromStar + "light seconds from" + est.System.Name);
+        }
+        public void SayUnknownStation()
+        {
+            this.Say("Unknown Station");
+        }
+        public void SayUnknownSystem()
+        {
+            this.Say("Unknown System");
+        }
+
+        private string _BlanksToUnknown(string input)
+        {
+            if (input.Equals(""))
+            {
+                return "Unknown";
+            }
+            else
+                return input;
+        }
+
+        public void SayStation(EliteStation est)
+        {
+
+            string stationInfo = @"" + _BlanksToUnknown(est.Name) + ", " +
+                ", Faction, " + _BlanksToUnknown(est.Faction) +
+                ", Allegiance, " + _BlanksToUnknown(est.Allegiance) +
+                ", Government, " +  _BlanksToUnknown(est.Government) +
+                ", State, " +  _BlanksToUnknown(est.State) +
+                ", StarportType, " +  _BlanksToUnknown(est.StarportType);
+
+            stationInfo += ", Max Landing Pad Size, ";
+            switch(est.MaxPadSize)
+            {
+                case ("S"):
+                    stationInfo += "Small";
+                    break;
+                case ("M"):
+                    stationInfo += "Medium";
+                    break;
+                case ("L"):
+                    stationInfo += "Large";
+                    break;
+                default:
+                    stationInfo += "Unknown";
+                    break;
+            }
+
+            stationInfo += ", Known Available Services, ";
+            if (est.HasCommodities)
+                stationInfo += ", Commodities ,";
+            if (est.HasRefuel)
+                stationInfo += ", Refuel ,";
+            if (est.HasRepair)
+                stationInfo += ", Repair ,";
+            if (est.HasRearm)
+                stationInfo += ", Rearm ,";
+            if (est.HasOutfitting)
+                stationInfo += ", Outfitting ,";
+            if (est.HasShipyard)
+                stationInfo += ", Shipyard ,";
+            if (est.HasBlackmarket)
+                stationInfo += ", Black Market";
+
+
+            this.Say(stationInfo);
+        }
+
         private string stripFormatting(string input)
         {
             string output;
