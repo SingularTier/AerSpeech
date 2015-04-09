@@ -45,6 +45,9 @@ namespace AerSpeech
         private AerTalk _Talk;
         private AerKeyboard _Keyboard;
 
+        private EliteStation _LastStation;
+        private EliteSystem _LastSystem;
+
         private Dictionary<string, AerInputHandler> _EventRegistry;
 #endregion
 
@@ -115,10 +118,20 @@ namespace AerSpeech
                 {
                     string systemName = input.Semantics["SystemName"].Value.ToString();
 
-                    if (systemName.Equals("__local__"))
-                        output.System = _LocalSystem;
+                    if (systemName.Equals("__last__"))
+                    {
+                        output.System = _LastSystem;
+                    }
+
                     else
-                        output.System = _Eddb.GetSystem(systemName);
+                    {
+                        if (systemName.Equals("__local__"))
+                            output.System = _LocalSystem;
+                        else
+                            output.System = _Eddb.GetSystem(systemName);
+                    }
+
+                    _LastSystem = output.System;
 
                     numberOfSemantics++;
                 }
@@ -127,11 +140,17 @@ namespace AerSpeech
                 {
                     string systemName = input.Semantics["FromSystem"].Value.ToString();
 
-                    if (systemName.Equals("__local__"))
-                        output.FromSystem = _LocalSystem;
+                    if (systemName.Equals("__last__"))
+                    {
+                        output.FromSystem = _LastSystem;
+                    }
                     else
-                        output.FromSystem = _Eddb.GetSystem(systemName);
-
+                    {
+                        if (systemName.Equals("__local__"))
+                            output.FromSystem = _LocalSystem;
+                        else
+                            output.FromSystem = _Eddb.GetSystem(systemName);
+                    }
                     numberOfSemantics++;
                 }
 
@@ -139,20 +158,33 @@ namespace AerSpeech
                 {
                     string systemName = input.Semantics["ToSystem"].Value.ToString();
 
-                    if (systemName.Equals("__local__"))
-                        output.ToSystem = _LocalSystem;
+                    if (systemName.Equals("__last__"))
+                    {
+                        output.ToSystem = _LastSystem;
+                    }
                     else
-                        output.ToSystem = _Eddb.GetSystem(systemName);
-
+                    {
+                        if (systemName.Equals("__local__"))
+                            output.ToSystem = _LocalSystem;
+                        else
+                            output.ToSystem = _Eddb.GetSystem(systemName);
+                    }
                     numberOfSemantics++;
                 }
 
                 if (input.Semantics.ContainsKey("StationName") && input.Semantics["StationName"] != null)
                 {
+                    string station = input.Semantics["StationName"].Value.ToString();
+
+                    if(station.Equals("__last__")){
+                        output.Station = _LastStation;
+                    }
+
                     if (output.System != null)
                     {
-                        output.Station = _Eddb.GetStation(output.System,
-                                                input.Semantics["StationName"].Value.ToString());
+                        output.Station = _Eddb.GetStation(output.System, station);
+
+                        _LastStation = output.Station;
                     }
 
                     numberOfSemantics++;
@@ -204,6 +236,11 @@ namespace AerSpeech
             }
         }
 
+        internal void ReadyToSpeak_Handler(object sender, LoadGrammarCompletedEventArgs e)
+        {
+            _Talk.SayReady();
+        }
+
         /// <summary>
         /// Creates default handlers for Default.xml grammar
         /// </summary>
@@ -216,10 +253,11 @@ namespace AerSpeech
             _EventRegistry.Add("BrowseGalnet", BrowseGalnet_Handler);
             _EventRegistry.Add("NextArticle", NextArticle_Handler);
             _EventRegistry.Add("ReadArticle", ReadArticle_Handler);
-            _EventRegistry.Add("TellJoke", TellJoke_Handler);
+            _EventRegistry.Add("TellJoke", TellJoke_Handler); 
             _EventRegistry.Add("Instruction", Instruction_Handler);
             _EventRegistry.Add("SystemInfo", SystemInfo_Handler);
             _EventRegistry.Add("StationInfo", StationInfo_Handler);
+            _EventRegistry.Add("LastStationInfo", LastStationInfo_Handler);
             _EventRegistry.Add("SetLocalSystem", SetLocalSystem_Handler);
             _EventRegistry.Add("StarDistance", StarDistance_Handler);
             _EventRegistry.Add("StarToStarDistance", StarToStarDistance_Handler);
@@ -230,6 +268,7 @@ namespace AerSpeech
             _EventRegistry.Add("FindCommodity", FindCommodity_Handler);
             _EventRegistry.Add("CancelSpeech", CancelSpeech_Handler);
             _EventRegistry.Add("Instructions", Instruction_Handler);
+
             _EventRegistry.Add("StartListening", StartListening_Handler);
             _EventRegistry.Add("StopListening", StopListening_Handler);
             _EventRegistry.Add("TypeLastSpelled", TypeLastSpelled_Handler);
@@ -242,6 +281,7 @@ namespace AerSpeech
             _EventRegistry.Add("SayCurrentSystem", SayCurrentSystem_Handler);
             _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler); 
         }
+
 #region DebugPriceCheck
         public void DBG_CompileGrammars()
         {
@@ -255,6 +295,12 @@ namespace AerSpeech
         // copy pasting going on here. -SingularTier
 
 #region Grammar Rule Handlers
+
+        private void AerCloseTerminal_Handler(AerRecognitionResult result)
+        {
+            Environment.Exit(0);
+        }
+
         public void Greetings_Handler(AerRecognitionResult result)
         {
             _Talk.RandomGreetings();
@@ -315,6 +361,19 @@ namespace AerSpeech
             else
                 _Talk.RandomUnknownAck();
         }
+
+        private void LastStationInfo_Handler(AerRecognitionResult result)
+        {
+            if (_LastStation != null)
+            {
+                _Talk.SayStation(_LastStation);
+            }
+            else
+            {
+                _Talk.SayUnknownStation();
+            }
+        }
+
         public void StationInfo_Handler(AerRecognitionResult result)
         {
 
@@ -348,7 +407,6 @@ namespace AerSpeech
         {
             if ((result.System != null) && (_LocalSystem != null))
             {
-
                 _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(result.System, _LocalSystem)));
             }
             else
@@ -361,7 +419,6 @@ namespace AerSpeech
         {
             if ((result.FromSystem != null) && (result.ToSystem != null))
             {
-
                 _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(result.FromSystem, result.ToSystem)));
             }
             else
@@ -369,6 +426,15 @@ namespace AerSpeech
                 _Talk.RandomUnknownAck();
             }
         }
+
+        public void AerSetSystem_Handler(AerRecognitionResult result)
+        {
+            if (result.System != null)
+            {
+                _LocalSystem = result.System;
+            }
+        }
+
         public void AerCapabilities_Handler(AerRecognitionResult result)
         {
             _Talk.SayCapabilities();
@@ -398,7 +464,11 @@ namespace AerSpeech
             {
                 EliteStation est = _Eddb.FindCommodity(result.Commodity.id, _LocalSystem, 250);
                 if (est != null)
+                {
                     _Talk.SayFoundCommodity(result.Commodity, est);
+                    _LastStation = est;
+                    _LastSystem = est.System;
+                }
                 else
                     _Talk.SayCannotFindCommodity(result.Commodity);
             }
@@ -489,6 +559,7 @@ namespace AerSpeech
 
         }
 #endregion
+
     }
 }
 

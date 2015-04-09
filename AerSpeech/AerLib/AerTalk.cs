@@ -36,8 +36,14 @@ namespace AerSpeech
 
         public void SayInitializing()
         {
-            this.Say("Aer. Initializing. Welcome to the Audio Expository Response Interface, Better known as: Aer. For instructions, please say 'I need instructions'. Initialization complete.");
+            this.Say("Aer initializing.");
         }
+
+        public void SayReady()
+        {
+            this.Say("I am ready. If you want me to respond to your commands, say 'Start Listening'.");
+        }
+
         public void SayBlocking(string text)
         {
             _synth.SpeakAsyncCancelAll();
@@ -87,6 +93,9 @@ namespace AerSpeech
                 case 1:
                     this.Say("Sorry, impossible");
                     break;
+                case 2:
+                    this.Say("I cannot do that");
+                    break;
             }
         }
         public void RandomAck()
@@ -111,7 +120,7 @@ namespace AerSpeech
             switch (rsp)
             {
                 case 0:
-                    this.Say("Unknown");
+                    this.Say("I don't know.");
                     break;
                 case 1:
                     this.Say("I do not know.");
@@ -120,11 +129,11 @@ namespace AerSpeech
         }
         public void SayIdentity()
         {
-            this.Say("I am Aerr, or the Audio Expository Response Interface. I interpret spoken commands in to actions. Unfortunately my capabilities are limited, but as more features are added you will find me indispensable.");
+            this.Say("I am Aer, the Audio Expository Response Interface.");
         }
         public void SayCreaterInfo()
         {
-            this.Say("I was developed by Commander Tei Lin in an effort to create a more robust Speech interface than what was available at the time.");
+            this.Say("I was developed by Commander Tei Lin in an effort to create a more robust Speech interface than what was available at the time. Some features were programmed by Commander Win-Epic.");
         }
         public void SayCapabilities()
         {
@@ -133,11 +142,15 @@ namespace AerSpeech
         public void SayInstructions()
         {
             string instructions = @"To get information on a system, say 'I need information on', followed by the system name, either spoken or spelled in the NATO alphabet.
+                                    To get information on a station, say 'Information on', followed by the station name and the system it is in, spoken or spelled.
                                     To set your local system, say 'set current system to', followed by the system name, also either spoken or spelled. 
+                                    You can also say 'that system' or 'that station' to reuse the last system or station mentioned.
                                     Once you set your local system, I can search for commodities and get distances to other systems.
                                     To browse Galnet, say 'browse galnet', 'next article', and 'read article'.
                                     To Search Wikipedia, say 'Search wikipedia for', followed by the NATO alphabet spelling of what you would like to search.
-                                    To disable all command processing, say 'Stop Listening'. To Resume processing, say 'Start Listening'";
+                                    To disable all command processing, say 'Stop Listening'. To Resume processing, say 'Start Listening'
+                                    You can customize my commands in the drfault.xml file, found in my Grammars folder.
+    ";
                                     
             this.Say(instructions);
         }
@@ -190,7 +203,6 @@ namespace AerSpeech
             LastSpelledWord = spellMe;
             return spellName;
         }
-
         public void SayUnknownLocation()
         {
             this.Say(@"I don't know where we are. Please set location using 'set current system'");
@@ -211,7 +223,11 @@ namespace AerSpeech
 
         public void SayStopListening()
         {
-            this.Say("I will no longer respond to commands until you say, 'Start listening'");
+            this.Say("I am now ignoring all commands.");
+        }
+        public void SaySelectSystem(EliteSystem es)
+        {
+            this.Say("Selected " + es.Name);
         }
 
         public void SayStationDistance(EliteStation est)
@@ -252,58 +268,61 @@ namespace AerSpeech
 
         public void SayStation(EliteStation est)
         {
-
-            string stationInfo = "";
+            //This could be faster, it is also more elegant
+            StringBuilder stationInfo = new StringBuilder();
 
             double daysSinceUpdate = DaysSince(est.UpdatedAt);
 
             if(daysSinceUpdate > 7)
             {
-                stationInfo += "This information was last updated, " + daysSinceUpdate.ToString("0") + " days ago, ,";
+                stationInfo.Append("This information was last updated, " + daysSinceUpdate.ToString("0") + " days ago, ,");
             }
 
-            stationInfo += @"" + _BlanksToUnknown(est.Name) + ", " +
+            stationInfo.Append(@"" + _BlanksToUnknown(est.Name) + 
                 ", Faction, " + _BlanksToUnknown(est.Faction) +
                 ", Allegiance, " + _BlanksToUnknown(est.Allegiance) +
                 ", Government, " +  _BlanksToUnknown(est.Government) +
                 ", State, " +  _BlanksToUnknown(est.State) +
-                ", StarportType, " +  _BlanksToUnknown(est.StarportType);
+                ", StarportType, " +  _BlanksToUnknown(est.StarportType));
 
-            stationInfo += ", Max Landing Pad Size, ";
+            stationInfo.Append(". Its distance from the star is" + _BlanksToUnknown(est.DistanceFromStar) + "light seconds. ");
+
+            stationInfo.Append("Maximum Landing Pad Size, ");
             switch(est.MaxPadSize)
             {
                 case ("S"):
-                    stationInfo += "Small";
+                    stationInfo.Append("Small");
                     break;
                 case ("M"):
-                    stationInfo += "Medium";
+                    stationInfo.Append("Medium");
                     break;
                 case ("L"):
-                    stationInfo += "Large";
+                    stationInfo.Append("Large");
                     break;
                 default:
-                    stationInfo += "Unknown";
+                    stationInfo.Append("Unknown");
                     break;
             }
 
-            stationInfo += ", Known Available Services, ";
+            stationInfo.Append(", Known Available Services");
             if (est.HasCommodities)
-                stationInfo += ", Commodities ,";
+                stationInfo.Append(", Commodities");
             if (est.HasRefuel)
-                stationInfo += ", Refuel ,";
+                stationInfo.Append(", Refuel");
             if (est.HasRepair)
-                stationInfo += ", Repair ,";
+                stationInfo.Append(", Repair");
             if (est.HasRearm)
-                stationInfo += ", Rearm ,";
+                stationInfo.Append(", Rearm");
             if (est.HasOutfitting)
-                stationInfo += ", Outfitting ,";
+                stationInfo.Append(", Outfitting");
             if (est.HasShipyard)
-                stationInfo += ", Shipyard ,";
+                stationInfo.Append(", Shipyard");
             if (est.HasBlackmarket)
-                stationInfo += ", Black Market";
+                stationInfo.Append(", Black Market");
 
+            stationInfo.Append(".");
 
-            this.Say(stationInfo);
+            this.Say(stationInfo.ToString());
         }
 
         private string stripFormatting(string input)
@@ -319,6 +338,7 @@ namespace AerSpeech
 
             return output;
         }
+
     }
 
 }
