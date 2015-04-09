@@ -50,8 +50,8 @@ namespace AerVAPlugin
 
         public static void ExecuteThread()
         {
-            _AerInput = new AerInput(AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\Grammars\");
             _AerHandler = new AerHandler(AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\json\");
+            _AerInput = new AerInput(_AerHandler, AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\Grammars\");
 
             while(_RunWorker)
             {

@@ -54,6 +54,7 @@
     <Compile Include="AerTalk.cs" />
     <Compile Include="AerWiki.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Grammars\Default.xml">

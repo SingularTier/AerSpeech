@@ -585,6 +585,10 @@ namespace AerSpeech
         public EliteSystem GetSystem(string name)
         {
             int system_id;
+
+            if (name == null)
+                return null;
+
             if (_SystemNameRegistry.ContainsKey(name.ToLower()))
                 system_id = _SystemNameRegistry[name.ToLower()];
             else

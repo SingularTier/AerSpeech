@@ -53,6 +53,25 @@ namespace AerSpeech
 
 #region State Variables
         private EliteSystem _LocalSystem; //Our current local system
+        public EliteSystem LocalSystem
+        {
+            get 
+            { 
+                if(_LocalSystem == null)
+                {
+                    string localSystem = Settings.Load("localsystem");
+                    _LocalSystem = _Eddb.GetSystem(localSystem);
+                }
+
+                return _LocalSystem; 
+            }
+            set
+            {
+                Settings.Store("localsystem", value.Name);
+                _LocalSystem = value;
+            }
+        }
+
         private int _GalnetEntry; //Current galnet entry index
         private int _JokeEntry;   //Current joke entry index
         public bool _Squelched;
@@ -126,7 +145,7 @@ namespace AerSpeech
                     else
                     {
                         if (systemName.Equals("__local__"))
-                            output.System = _LocalSystem;
+                            output.System = LocalSystem;
                         else
                             output.System = _Eddb.GetSystem(systemName);
                     }
@@ -147,7 +166,7 @@ namespace AerSpeech
                     else
                     {
                         if (systemName.Equals("__local__"))
-                            output.FromSystem = _LocalSystem;
+                            output.FromSystem = LocalSystem;
                         else
                             output.FromSystem = _Eddb.GetSystem(systemName);
                     }
@@ -165,7 +184,7 @@ namespace AerSpeech
                     else
                     {
                         if (systemName.Equals("__local__"))
-                            output.ToSystem = _LocalSystem;
+                            output.ToSystem = LocalSystem;
                         else
                             output.ToSystem = _Eddb.GetSystem(systemName);
                     }
@@ -281,7 +300,7 @@ namespace AerSpeech
             _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler); 
         }
 
-#region DebugPriceCheck
+#region Debug
 #if DEBUG
         public void DBG_CompileGrammars()
         {
@@ -394,16 +413,16 @@ namespace AerSpeech
             if (result.System != null)
             {
                 _Talk.SaySetSystem(result.System);
-                _LocalSystem = result.System;
+                LocalSystem = result.System;
             }
             else
                 _Talk.RandomUnknownAck();
         }
         public void StarDistance_Handler(AerRecognitionResult result)
         {
-            if ((result.System != null) && (_LocalSystem != null))
+            if ((result.System != null) && (LocalSystem != null))
             {
-                _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(result.System, _LocalSystem)));
+                _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(result.System, LocalSystem)));
             }
             else
             {
@@ -427,7 +446,7 @@ namespace AerSpeech
         {
             if (result.System != null)
             {
-                _LocalSystem = result.System;
+                LocalSystem = result.System;
             }
         }
 
@@ -456,9 +475,9 @@ namespace AerSpeech
         }
         public void FindCommodity_Handler(AerRecognitionResult result)
         {
-            if (_LocalSystem != null)
+            if (LocalSystem != null)
             {
-                EliteStation est = _Eddb.FindCommodity(result.Commodity.id, _LocalSystem, 250);
+                EliteStation est = _Eddb.FindCommodity(result.Commodity.id, LocalSystem, 250);
                 if (est != null)
                 {
                     _Talk.SayFoundCommodity(result.Commodity, est);
@@ -521,7 +540,7 @@ namespace AerSpeech
         public void TypeCurrentSystem_Handler(AerRecognitionResult result)
         {
             _Talk.RandomAck();
-            _Keyboard.Type(_LocalSystem.Name);
+            _Keyboard.Type(LocalSystem.Name);
         }
         public void StationDistance_Handler(AerRecognitionResult result)
         {
@@ -543,8 +562,8 @@ namespace AerSpeech
         }
         public void SayCurrentSystem_Handler(AerRecognitionResult result)
         {
-            if (_LocalSystem != null)
-                _Talk.Say(_LocalSystem.Name);
+            if (LocalSystem != null)
+                _Talk.Say(LocalSystem.Name);
             else
                 _Talk.SayUnknownLocation();
 
