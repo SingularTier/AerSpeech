@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -51,6 +52,7 @@ namespace AerSpeech
         public bool HasRearm;
         public bool HasOutfitting;
         public bool HasShipyard;
+        public long UpdatedAt;
         public List<EliteCommodity> Imports;
         public List<EliteCommodity> Exports;
 
@@ -75,7 +77,6 @@ namespace AerSpeech
     /// <remarks>
     /// THIS IS THE MESSIEST CODE IM SORRY ITS WHERE IM WORKING THE MOST.
     /// This used to use SQL, but SQLite wasn't powerful enough to replace LINQ. A full database would be nice, but...
-    /// TODO: Fix initialization. Currently you have to do a magic dance to get this going (Call ParseBlah 3x).
     /// </remarks>
     public class AerDB
     {
@@ -83,16 +84,29 @@ namespace AerSpeech
         private Dictionary<string, int> _SystemNameRegistry;
         private Dictionary<int, EliteCommodity> _CommodityRegistry;
         private Dictionary<string, int> _CommodityNameRegistry;
+        public bool Loaded = false;
 
-        public AerDB()
+        public AerDB(string systemsJson, string stationsJson, string commoditiesJson)
         {
             _SystemRegistry = new Dictionary<int, EliteSystem>();
             _SystemNameRegistry = new Dictionary<string, int>();
             _CommodityRegistry = new Dictionary<int, EliteCommodity>();
             _CommodityNameRegistry = new Dictionary<string, int>();
+
+            if (File.Exists(systemsJson) && File.Exists(commoditiesJson) && File.Exists(stationsJson))
+            {
+                _ParseSystems(File.ReadAllText(systemsJson));
+                _ParseCommodities(File.ReadAllText(commoditiesJson));
+                _ParseStations(File.ReadAllText(stationsJson));
+            }
+            else
+            {
+                AerDebug.LogError("Could not find JSON files!");
+            }
+            Loaded = true;
         }
 
-        public void ParseSystems(string json)
+        private void _ParseSystems(string json)
         {
             AerDebug.Log("Loading Systems...");
             Stopwatch timer = new Stopwatch();
@@ -103,27 +117,34 @@ namespace AerSpeech
 
             foreach (JObject jo in ja)
             {
-                EliteSystem es = new EliteSystem();
-                es.Name = jo["name"].ToString();
-                es.id = int.Parse(jo["id"].ToString());
-                es.x = float.Parse(jo["x"].ToString());
-                es.y = float.Parse(jo["y"].ToString());
-                es.z = float.Parse(jo["z"].ToString());
-                es.Faction = jo["faction"].ToString();
-                es.Population = jo["population"].ToString();
-                es.Government = jo["government"].ToString();
-                es.Allegiance = jo["allegiance"].ToString();
-                es.State = jo["state"].ToString();
-                es.Security = jo["security"].ToString();
-                es.PrimaryEconomy = jo["primary_economy"].ToString();
+                try
+                {
+                    EliteSystem es = new EliteSystem();
+                    es.Name = jo["name"].ToString();
+                    es.id = int.Parse(jo["id"].ToString());
+                    es.x = float.Parse(jo["x"].ToString());
+                    es.y = float.Parse(jo["y"].ToString());
+                    es.z = float.Parse(jo["z"].ToString());
+                    es.Faction = jo["faction"].ToString();
+                    es.Population = jo["population"].ToString();
+                    es.Government = jo["government"].ToString();
+                    es.Allegiance = jo["allegiance"].ToString();
+                    es.State = jo["state"].ToString();
+                    es.Security = jo["security"].ToString();
+                    es.PrimaryEconomy = jo["primary_economy"].ToString();
 
-                string permit = jo["needs_permit"].ToString();
-                es.PermitRequired = permit.Equals("1");
+                    string permit = jo["needs_permit"].ToString();
+                    es.PermitRequired = permit.Equals("1");
 
-                _SystemRegistry.Add(es.id, es);
-                _SystemNameRegistry.Add(es.Name.ToLower(), es.id);
+                    _SystemRegistry.Add(es.id, es);
+                    _SystemNameRegistry.Add(es.Name.ToLower(), es.id);
 
-                //file.WriteLine(@"<item> " + jo["name"] + " <tag> out.id="+ jo["id"] + " </tag></item>");
+                    //file.WriteLine(@"<item> " + jo["name"] + " <tag> out.id="+ jo["id"] + " </tag></item>");
+                }
+                catch (FormatException e)
+                {
+                    AerDebug.LogError("Malformed/Unexpected System JSON data, " + e.Message);
+                }
             
             }
 
@@ -131,7 +152,7 @@ namespace AerSpeech
 
             timer.Stop();
         }
-        public void ParseCommodities(string json)
+        private void _ParseCommodities(string json)
         {
             AerDebug.Log("Loading Commodities...");
             Stopwatch timer = new Stopwatch();
@@ -165,7 +186,7 @@ namespace AerSpeech
             //file.Close();
             timer.Stop();
         }
-        public void ParseStations(string json)
+        private void _ParseStations(string json)
         {
             AerDebug.Log("Loading Stations...");
             Stopwatch timer = new Stopwatch();
@@ -174,63 +195,123 @@ namespace AerSpeech
 
             foreach (JObject jo in ja)
             {
-                int system_id = int.Parse(jo["system_id"].ToString());
-                EliteSystem es = GetSystem(system_id);
-                if(es == null)
+                try
                 {
-                    continue;
-                }
+                    int system_id = int.Parse(jo["system_id"].ToString());
+                    EliteSystem es = GetSystem(system_id);
+                    if (es == null)
+                    {
+                        continue;
+                    }
 
-                EliteStation station = new EliteStation();
-                station.Name = jo["name"].ToString();
-                station.id = int.Parse(jo["id"].ToString());
-                station.System = es;
-                station.MaxPadSize = jo["max_landing_pad_size"].ToString();
-                station.DistanceFromStar = jo["distance_to_star"].ToString();
-                station.Faction = jo["faction"].ToString();
-                station.Allegiance = jo["allegiance"].ToString();
-                station.Government = jo["government"].ToString();
-                station.State = jo["state"].ToString();
-                station.StarportType = jo["type"].ToString();
-                station.HasBlackmarket = jo["has_blackmarket"].ToString().Equals("1");
-                station.HasCommodities = jo["has_commodities"].ToString().Equals("1");
-                station.HasRefuel = jo["has_refuel"].ToString().Equals("1");
-                station.HasRepair = jo["has_repair"].ToString().Equals("1");
-                station.HasRearm = jo["has_rearm"].ToString().Equals("1");
-                station.HasOutfitting = jo["has_outfitting"].ToString().Equals("1");
-                station.HasShipyard = jo["has_shipyard"].ToString().Equals("1");
-                
-                foreach(string commodity in jo["export_commodities"])
+                    EliteStation station = new EliteStation();
+                    station.Name = jo["name"].ToString();
+                    station.id = int.Parse(jo["id"].ToString());
+                    station.System = es;
+                    station.MaxPadSize = jo["max_landing_pad_size"].ToString();
+                    station.DistanceFromStar = jo["distance_to_star"].ToString();
+                    station.Faction = jo["faction"].ToString();
+                    station.Allegiance = jo["allegiance"].ToString();
+                    station.Government = jo["government"].ToString();
+                    station.State = jo["state"].ToString();
+                    station.StarportType = jo["type"].ToString();
+                    station.HasBlackmarket = jo["has_blackmarket"].ToString().Equals("1");
+                    station.HasCommodities = jo["has_commodities"].ToString().Equals("1");
+                    station.HasRefuel = jo["has_refuel"].ToString().Equals("1");
+                    station.HasRepair = jo["has_repair"].ToString().Equals("1");
+                    station.HasRearm = jo["has_rearm"].ToString().Equals("1");
+                    station.HasOutfitting = jo["has_outfitting"].ToString().Equals("1");
+                    station.HasShipyard = jo["has_shipyard"].ToString().Equals("1");
+                    station.UpdatedAt = long.Parse(jo["updated_at"].ToString());
+                    foreach (string commodity in jo["export_commodities"])
+                    {
+                        EliteCommodity ec = GetCommodity(commodity);
+
+                        if (ec != null)
+                        {
+                            station.Exports.Add(ec);
+                        }
+                        else
+                        {
+                            AerDebug.LogError("Found commodity I knew nothing about = " + commodity);
+                        }
+                    }
+
+                    foreach (string commodity in jo["import_commodities"])
+                    {
+                        EliteCommodity ec = GetCommodity(commodity);
+
+                        if (ec != null)
+                        {
+                            station.Imports.Add(ec);
+                        }
+                        else
+                        {
+                            AerDebug.LogError("Found commodity I knew nothing about = " + commodity);
+                        }
+                    }
+
+                    es.Stations.Add(station);
+                }
+                catch (Exception e)
                 {
-                    EliteCommodity ec = GetCommodity(commodity);
-
-                    if (ec != null)
-                    {
-                        station.Exports.Add(ec);
-                    }
-                    else
-                    {
-                        AerDebug.LogError("Found commodity I knew nothing about = " + commodity);
-                    }
+                    AerDebug.LogError("Malformed/Unexpected Station JSON data, " + e.Message);
                 }
-
-                foreach (string commodity in jo["import_commodities"])
-                {
-                    EliteCommodity ec = GetCommodity(commodity);
-
-                    if (ec != null)
-                    {
-                        station.Imports.Add(ec);
-                    }
-                    else
-                    {
-                        AerDebug.LogError("Found commodity I knew nothing about = " + commodity);
-                    }
-                }
-
-                es.Stations.Add(station);
             }
+            AerDebug.Log("Should be ready."); 
         }
+
+#if DEBUG
+        //This creates grammar rules out of our data
+        public void DBG_CompileGrammars()
+        {
+
+            Dictionary<string, bool> stationAdded = new Dictionary<string, bool>();
+
+            System.IO.StreamWriter file;
+            AerDebug.Log("Compiling grammars...");
+            AerDebug.Log("Compiling grammars for systems...");
+
+            file = new System.IO.StreamWriter(@"systemsGrammar.xml");
+            foreach(EliteSystem system in _SystemRegistry.Values)
+            {
+                file.WriteLine(@"<item> " + stripForXML(system.Name) + " <tag> out.id=" + system.id + "; out.Name=\"" + stripForXML(system.Name) + "\"; </tag></item>");
+            }
+            file.Close();
+
+            AerDebug.Log("Compiling grammars for commodities...");
+            file = new System.IO.StreamWriter(@"commoditiesGrammar.xml");
+            foreach (EliteCommodity commodity in _CommodityRegistry.Values)
+            {
+                file.WriteLine(@"<item> " + stripForXML(commodity.Name) + " <tag> out.id=" + commodity.id + "; </tag></item>");
+            }
+            file.Close();
+
+            AerDebug.Log("Compiling grammars for stations...");
+            file = new System.IO.StreamWriter(@"stationsGrammar.xml");
+            foreach (EliteSystem system in _SystemRegistry.Values)
+            {
+                foreach (EliteStation station in system.Stations)
+                {
+                    if (!stationAdded.ContainsKey(station.Name))
+                    {
+                        file.WriteLine(@"<item> " + stripForXML(station.Name) + " <tag> out.Name=\"" + stripForXML(station.Name) + "\";</tag></item>");
+                        stationAdded.Add(station.Name, true);
+                    }
+                }
+            }
+            file.Close();
+        }
+
+        public string stripForXML(string input)
+        {
+            string output;
+
+            output = Regex.Replace(input, "&", "&amp;");
+
+            return output;
+        }
+#endif
 
 #region Registry Access Methods
         public EliteSystem GetSystem(int system_id)
@@ -270,6 +351,26 @@ namespace AerSpeech
 #endregion
 
 #region Utility Methods
+        public EliteStation GetStation(EliteSystem es, string stationName)
+        {
+            List<EliteStation> matchingStations;
+
+            var est = from station in es.Stations
+                               where station.Name.Equals(stationName)
+                               select station;
+
+            matchingStations = est.ToList<EliteStation>();
+
+            if (matchingStations.Count > 1)
+            {
+                AerDebug.LogError(@"Found " + matchingStations.Count +" stations with the name '" + stationName + "' in system '" + es.Name + "'");
+            }
+            if (matchingStations.Count > 0)
+                return matchingStations[0];
+            else
+                return null;
+        }
+
         public int GetPrice(int commodity_id)
         {
             EliteCommodity ec = GetCommodity(commodity_id);
@@ -282,8 +383,6 @@ namespace AerSpeech
                 return ec.AveragePrice;
             }
         }
-
-
 
         public EliteStation FindCommodity(int commodity_id, EliteSystem origin, float distance)
         {

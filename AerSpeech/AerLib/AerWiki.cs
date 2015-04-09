@@ -25,19 +25,27 @@ namespace AerSpeech
 
         public string Query(string title)
         {
-            XmlDocument xmlDoc = new XmlDocument();
-            WebClient webClient = new WebClient();
-            
-            StreamReader wikiXml = new StreamReader(webClient.OpenRead(wikiURL + title));
+            try
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                WebClient webClient = new WebClient();
 
-            xmlDoc.Load(new XmlTextReader(wikiXml));
+                StreamReader wikiXml = new StreamReader(webClient.OpenRead(wikiURL + title));
 
-            XmlNode extractNode = xmlDoc.SelectSingleNode("api/query/pages/page/extract");
+                xmlDoc.Load(new XmlTextReader(wikiXml));
 
-            if (extractNode != null)
-                return extractNode.InnerText;
-            else
-                return "No Results Found";
+                XmlNode extractNode = xmlDoc.SelectSingleNode("api/query/pages/page/extract");
+
+                if (extractNode != null)
+                    return extractNode.InnerText;
+                else
+                    return "No Results Found";
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogError("Problem querying wikipedia, " + e.Message);
+                return "Error";
+            }
             
 
         }
