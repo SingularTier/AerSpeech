@@ -258,6 +258,7 @@ namespace AerSpeech
                     AerDebug.LogError("Malformed/Unexpected Station JSON data, " + e.Message);
                 }
             }
+            AerDebug.Log("Should be ready."); 
         }
 
 #if DEBUG

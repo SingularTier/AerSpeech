@@ -21,8 +21,8 @@ namespace AerSpeechConsole
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the A.E.R. Interface Console");
-            _AerInput = new AerInput();
             _AerHandler = new AerHandler();
+            _AerInput = new AerInput(_AerHandler);
             HandleInput();
         }
 

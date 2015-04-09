@@ -24051,7 +24051,6 @@
       <item> Wregoe BB-I b53-0 <tag> out.id=24110; out.Name="Wregoe BB-I b53-0"; </tag></item>
       <item> Yinsi <tag> out.id=24111; out.Name="Yinsi"; </tag></item>
       <item> Arx Arcis <tag> out.id=24112; out.Name="Arx Arcis"; </tag></item>
-    
 		</one-of>
 	</rule>
   <rule id="commodities">
@@ -37125,6 +37124,10 @@
         <tag> out.Command = "StartListening" </tag>
       </item>
       <item>
+        <ruleref uri="#LastStationInfo" />
+        <tag> out.Command = "LastStationInfo" </tag>
+      </item>
+      <item>
         <ruleref uri="#StopListening" />
         <tag> out.Command = "StopListening" </tag>
       </item>
@@ -37225,14 +37228,16 @@
     <item repeat="0-1">
       <ruleref uri="#CommandPrefix" />
     </item>
-    <item>Information on</item>
-    <item>
-      <ruleref uri="#StationName" />
-    </item>
-    <item>in</item>
-    <item>
-      <ruleref uri="#SystemName" />
-    </item>
+      <item>
+        <item>Information on</item>
+        <item>
+          <ruleref uri="#StationName" />
+        </item>
+        <item>in</item>
+        <item>
+          <ruleref uri="#SystemName" />
+        </item>
+      </item>
   </rule> 
   
   <rule id="SayCurrentVersion">
@@ -37246,6 +37251,28 @@
     </one-of>
   </rule>
   
+  <rule id="LastStationInfo">
+    <one-of>
+      <item> Tell me more </item>
+      <item> More info </item>
+    </one-of>
+    <one-of>
+    <item> on </item>
+    <item> about </item>
+    </one-of>
+    <one-of>
+      <item>that</item>
+      <item>this</item>
+      <item>the previous</item>
+      <item>the</item>
+    </one-of>
+    <one-of>
+      <item> station </item>
+      <item> starport </item>
+      <item> outpost </item>
+    </one-of>
+  </rule>
+
   <rule id="SayCurrentSystem">
     <one-of>
       <item>What system am I in</item>
@@ -37335,12 +37362,21 @@
     <item repeat="0-1"> me </item>
   </rule>
   
-  <rule id="StopListening">
-    <item>Stop Listening</item>
+  <rule id="StartListening">
+    <one-of>
+      <item>Start Listening</item>
+      <item>Listen</item>
+      <item>Hey listen</item>
+    </one-of>
   </rule>
 
-  <rule id="StartListening">
-    <item>Start Listening</item>
+  <rule id="StopListening">
+    <one-of>
+      <item>Stop listening</item>
+      <item>Leave me alone</item>
+      <item>Ignore me</item>
+      <item>Thank you</item>
+    </one-of>
   </rule>
   
   <rule id="SetLocalSystem">
@@ -37398,6 +37434,15 @@
         </one-of>
         <item> system </item>
         <tag>out.Name = "__local__"</tag>
+      </item>
+      <item>
+        <one-of>
+          <item>the last</item>
+          <item>the previous</item>
+          <item>that</item>
+        </one-of>
+        <item> system </item>
+        <tag>out.Name = "__last__"</tag>
       </item>
     </one-of>   
   </rule>  

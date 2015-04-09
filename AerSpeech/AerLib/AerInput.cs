@@ -21,12 +21,11 @@ namespace AerSpeech
         public RecognitionResult LastResult;
         public bool NewInput;
 
-
-        public AerInput(string pathToGrammar = @"Grammars\")
+        public AerInput(AerHandler handler, string pathToGrammar = @"Grammars\")
         {
             RecognitionEngine = new SpeechRecognitionEngine(new CultureInfo("en-US"));
             RecognitionEngine.SetInputToDefaultAudioDevice();
-            LoadGrammar(pathToGrammar);
+            LoadGrammar(pathToGrammar, handler);
             RecognitionEngine.SpeechRecognized += this.SpeechRecognized_Handler;
             RecognitionEngine.UpdateRecognizerSetting("ResponseSpeed", 750);
             NewInput = false;
@@ -36,11 +35,12 @@ namespace AerSpeech
         /// <summary>
         /// Loads the grammar in to the recognition engine.
         /// </summary>
-        protected virtual void LoadGrammar(string pathToGrammar)
+        protected virtual void LoadGrammar(string pathToGrammar, AerHandler handler)
         {
 
             AerDebug.Log("Loading Grammar...");
             Grammar grammar = new Grammar(pathToGrammar + @"Default.xml");
+            RecognitionEngine.LoadGrammarCompleted += handler.ReadyToSpeak_Handler;
             RecognitionEngine.LoadGrammarAsync(grammar);
 
         }
