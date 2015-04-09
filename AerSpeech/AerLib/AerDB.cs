@@ -113,8 +113,6 @@ namespace AerSpeech
             timer.Start();
             JArray ja = JArray.Parse(json);
 
-            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"output.xml");
-
             foreach (JObject jo in ja)
             {
                 try
@@ -138,8 +136,6 @@ namespace AerSpeech
 
                     _SystemRegistry.Add(es.id, es);
                     _SystemNameRegistry.Add(es.Name.ToLower(), es.id);
-
-                    //file.WriteLine(@"<item> " + jo["name"] + " <tag> out.id="+ jo["id"] + " </tag></item>");
                 }
                 catch (FormatException e)
                 {
@@ -147,9 +143,6 @@ namespace AerSpeech
                 }
             
             }
-
-            //file.Close();
-
             timer.Stop();
         }
         private void _ParseCommodities(string json)
@@ -159,8 +152,6 @@ namespace AerSpeech
             timer.Start();
             JArray ja = JArray.Parse(json);
 
-            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"output.xml");
-            
             foreach (JObject jo in ja)
             {
                 EliteCommodity ec = new EliteCommodity();
@@ -178,12 +169,9 @@ namespace AerSpeech
                 ec.id = int.Parse(jo["id"].ToString());
                 _CommodityRegistry.Add(ec.id, ec);
                 _CommodityNameRegistry.Add(ec.Name.ToLower(), ec.id);
-                //file.WriteLine(@"<item> " + jo["name"] + " <tag> out.id="+ jo["id"] + " </tag></item>");
-                
 
             }
 
-            //file.Close();
             timer.Stop();
         }
         private void _ParseStations(string json)

@@ -15,7 +15,7 @@ namespace AerSpeech
     /// </summary>
     public static class AerDebug
     {
-        public static string VERSION_NUMBER = "1.1p1";
+        public static string VERSION_NUMBER = "1.1p2";
 
         static bool _Init = false;
         static StreamWriter _LogFile;
@@ -43,7 +43,7 @@ namespace AerSpeech
             {
                 Console.WriteLine("ERROR: " + error);
             }
-            catch (Exception e) { }
+            catch { }
         }
 
         public static void LogException(Exception e)
@@ -71,7 +71,7 @@ namespace AerSpeech
             {
                 Console.WriteLine("LOG  : " + text);
             }
-            catch (Exception e) { }
+            catch { }
         }
 
         public static void LogSpeech(string text, double confidence)
@@ -92,7 +92,7 @@ namespace AerSpeech
                 Console.WriteLine("SPEECH  : " + text + " \t\t " + confidence);
                 Console.ResetColor();
             }
-            catch (Exception e) { }
+            catch { }
 
             if (!_Init)
                 Init();

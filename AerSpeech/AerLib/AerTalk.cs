@@ -148,8 +148,8 @@ namespace AerSpeech
                                     Once you set your local system, I can search for commodities and get distances to other systems.
                                     To browse Galnet, say 'browse galnet', 'next article', and 'read article'.
                                     To Search Wikipedia, say 'Search wikipedia for', followed by the NATO alphabet spelling of what you would like to search.
-                                    To disable all command processing, say 'Stop Listening'. To Resume processing, say 'Start Listening'
-                                    You can customize my commands in the drfault.xml file, found in my Grammars folder.
+                                    To disable all command processing, say 'Stop Listening'. To Resume processing, say 'Start Listening'.
+                                    You can customize my commands in the default.xml file, found in my Grammars folder.
     ";
                                     
             this.Say(instructions);

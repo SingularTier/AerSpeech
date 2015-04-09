@@ -268,7 +268,6 @@ namespace AerSpeech
             _EventRegistry.Add("FindCommodity", FindCommodity_Handler);
             _EventRegistry.Add("CancelSpeech", CancelSpeech_Handler);
             _EventRegistry.Add("Instructions", Instruction_Handler);
-
             _EventRegistry.Add("StartListening", StartListening_Handler);
             _EventRegistry.Add("StopListening", StopListening_Handler);
             _EventRegistry.Add("TypeLastSpelled", TypeLastSpelled_Handler);
@@ -290,11 +289,6 @@ namespace AerSpeech
         }
 #endif
 #endregion
-
-        //TODO: Abstract all the boilerplate semantic value code in to the
-        // RecognitionResult class, or a subclass of it. This would include
-        // values such as distance, stations, systems, ids. There's a lot of
-        // copy pasting going on here. -SingularTier
 
 #region Grammar Rule Handlers
 
