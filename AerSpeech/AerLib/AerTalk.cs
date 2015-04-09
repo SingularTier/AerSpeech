@@ -237,10 +237,32 @@ namespace AerSpeech
                 return input;
         }
 
+        public double DaysSince(long timeSinceEpoch)
+        {
+            DateTime currentTime = DateTime.UtcNow;
+            DateTime updatedAt = FromEpoch(timeSinceEpoch);
+            TimeSpan elapsed = currentTime.Subtract(updatedAt);
+            return elapsed.TotalDays;
+        }
+        public DateTime FromEpoch(long epochTime)
+        {
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return epoch.AddSeconds(epochTime);
+        }
+
         public void SayStation(EliteStation est)
         {
 
-            string stationInfo = @"" + _BlanksToUnknown(est.Name) + ", " +
+            string stationInfo = "";
+
+            double daysSinceUpdate = DaysSince(est.UpdatedAt);
+
+            if(daysSinceUpdate > 7)
+            {
+                stationInfo += "This information was last updated, " + daysSinceUpdate.ToString("0") + " days ago, ,";
+            }
+
+            stationInfo += @"" + _BlanksToUnknown(est.Name) + ", " +
                 ", Faction, " + _BlanksToUnknown(est.Faction) +
                 ", Allegiance, " + _BlanksToUnknown(est.Allegiance) +
                 ", Government, " +  _BlanksToUnknown(est.Government) +

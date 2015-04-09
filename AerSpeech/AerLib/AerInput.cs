@@ -55,16 +55,9 @@ namespace AerSpeech
             string text = e.Result.Text;
             SemanticValue semantics = e.Result.Semantics;
 
-            if (e.Result.Confidence > 0.9f)
-            {
-                NewInput = true;
-                LastResult = e.Result;
-                AerDebug.LogSpeech(e.Result.Text + "\t\t (" + e.Result.Confidence + ")");
-            }
-            else
-            {
-                AerDebug.Log(e.Result.Text + "\t\t (" + e.Result.Confidence + ")");
-            }
+            NewInput = true;
+            LastResult = e.Result;
+            AerDebug.LogSpeech(e.Result.Text, e.Result.Confidence);
         }
 
     }

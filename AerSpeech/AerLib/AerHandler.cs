@@ -14,15 +14,19 @@ namespace AerSpeech
     /// Handler for speech recognition commands. Associates directly with a topLevel rule (out.Command)
     /// </summary>
     /// <param name="result"></param>
-    public delegate void AerInputHandler(RecognitionResult result);
+    public delegate void AerInputHandler(AerRecognitionResult result);
 
     public class AerRecognitionResult
     {
+        public double RequiredConfidence;
         public double Confidence;
+        public string Command;
+        public string Data;
         public EliteStation Station;
         public EliteSystem System;
+        public EliteSystem FromSystem;
+        public EliteSystem ToSystem;
         public EliteCommodity Commodity;
-
         public SemanticValue Semantics;
 
     }
@@ -81,6 +85,67 @@ namespace AerSpeech
         }
 #endregion
 
+        public AerRecognitionResult BuildAerRecognition(RecognitionResult input)
+        {
+            int numberOfSemantics = 0;
+            AerRecognitionResult output = new AerRecognitionResult();
+            output.Confidence = input.Confidence;
+            try
+            {
+                if (input.Semantics.ContainsKey("Command") && input.Semantics["Command"] != null)
+                {
+                    output.Command = input.Semantics["Command"].Value.ToString();
+                    numberOfSemantics++;
+                }
+
+                if (input.Semantics.ContainsKey("Data") && input.Semantics["Data"] != null)
+                {
+                    output.Data = input.Semantics["Data"].Value.ToString();
+                    numberOfSemantics++;
+                }
+
+                if (input.Semantics.ContainsKey("CommodityId") && input.Semantics["CommodityId"] != null)
+                {
+                    int commodityId = int.Parse(input.Semantics["CommodityId"].Value.ToString());
+                    output.Commodity = _Eddb.GetCommodity(commodityId);
+                    numberOfSemantics++;
+                }
+
+                if (input.Semantics.ContainsKey("SystemName") && input.Semantics["SystemName"] != null)
+                {
+                    string systemName = input.Semantics["SystemName"].Value.ToString();
+
+                    if (systemName.Equals("__local__"))
+                        output.System = _LocalSystem;
+                    else
+                        output.System = _Eddb.GetSystem(systemName);
+
+                    numberOfSemantics++;
+                }
+
+                if (input.Semantics.ContainsKey("StationName") && input.Semantics["StationName"] != null)
+                {
+                    if (output.System != null)
+                    {
+                        output.Station = _Eddb.GetStation(output.System,
+                                                input.Semantics["StationName"].Value.ToString());
+                    }
+
+                    numberOfSemantics++;
+                }
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogError("Could not parse grammar semantics, " + e.Message);
+                AerDebug.LogException(e);
+            }
+
+            output.RequiredConfidence = 0.92f - 0.02 * (numberOfSemantics * numberOfSemantics);
+
+            return output;
+        }
+
+
         /// <summary>
         /// Handles all speech results.
         /// This should be called in a thread that doesn't mind blocking for a long time.
@@ -88,20 +153,25 @@ namespace AerSpeech
         /// <param name="result"></param>
         public void DefaultInput_Handler(RecognitionResult result)
         {
-            SemanticValue semantics = result.Semantics;
-            if (semantics["Command"] != null)
+            AerRecognitionResult input = BuildAerRecognition(result);
+            if(input.Confidence < input.RequiredConfidence)
             {
-                string command = semantics["Command"].Value.ToString();
-                if(_EventRegistry.ContainsKey(command))
+                return;
+            }
+
+            if (input.Command != null)
+            {
+                if (_EventRegistry.ContainsKey(input.Command))
                 {
+
                     if (!_Squelched)
-                        _EventRegistry[command](result);
-                    else if(command.Equals("AerStartListening"))
-                        _EventRegistry[command](result);
+                        _EventRegistry[input.Command](input);
+                    else if (input.Command.Equals("AerStartListening"))
+                        _EventRegistry[input.Command](input);
                 }
                 else
                 {
-                    AerDebug.LogError(@"Recieved command that didn't have a handler, '" + result.Text + "', command=" + command);
+                    AerDebug.LogError(@"Recieved command that didn't have a handler, '" + result.Text + "', command=" + input.Command);
                 }
             }
             else
@@ -160,28 +230,28 @@ namespace AerSpeech
         // copy pasting going on here. -SingularTier
 
 #region Grammar Rule Handlers
-        public void Greetings_Handler(RecognitionResult result)
+        public void Greetings_Handler(AerRecognitionResult result)
         {
             _Talk.RandomGreetings();
         }
-        public void AerQuery_Handler(RecognitionResult result)
+        public void AerQuery_Handler(AerRecognitionResult result)
         {
             _Talk.RandomQueryAck();
         }
-        public void SearchWiki_Handler(RecognitionResult result)
+        public void SearchWiki_Handler(AerRecognitionResult result)
         {
-            string word = result.Semantics["Data"].Value.ToString();
+            string word = result.Data;
             _Talk.SayBlocking("Searching the wiki for " + word);
             _Talk.Say(_Wikipedia.Query(word));
         }
-        public void BrowseGalnet_Handler(RecognitionResult result)
+        public void BrowseGalnet_Handler(AerRecognitionResult result)
         {
             if(_GalnetRSS.Loaded)
                 _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
             else
                 _Talk.RandomNack();
         }
-        public void NextArticle_Handler(RecognitionResult result)
+        public void NextArticle_Handler(AerRecognitionResult result)
         {
             if (_GalnetRSS.Loaded)
             {
@@ -195,331 +265,179 @@ namespace AerSpeech
             else
                 _Talk.RandomNack();
         }
-        public void ReadArticle_Handler(RecognitionResult result)
+        public void ReadArticle_Handler(AerRecognitionResult result)
         {
             if (_GalnetRSS.Loaded)
                 _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Description);
             else
                 _Talk.RandomNack();
         }
-        public void TellJoke_Handler(RecognitionResult result)
+        public void TellJoke_Handler(AerRecognitionResult result)
         {
             _Talk.Say(_JokeRSS.Entries[_JokeEntry].Description);
             _JokeEntry++;
             if (_JokeEntry >= _JokeRSS.Entries.Count)
                 _JokeEntry = 0;
         }
-        public void Instruction_Handler(RecognitionResult result)
+        public void Instruction_Handler(AerRecognitionResult result)
         {
             _Talk.SayInstructions();
         }
-        public void SystemInfo_Handler(RecognitionResult result)
+        public void SystemInfo_Handler(AerRecognitionResult result)
         {
-            EliteSystem es = null;
-            try
-            {
-                string systemName = result.Semantics["SystemName"].Value.ToString();
-                AerDebug.Log("SystemName=" + systemName);
+            if(result.System != null)
+                _Talk.SaySystem(result.System);
+            else
+                _Talk.RandomUnknownAck();
+        }
+        public void StationInfo_Handler(AerRecognitionResult result)
+        {
 
-                if (systemName.Equals("__local__"))
-                    es = _LocalSystem;
-                else
-                    es = _Eddb.GetSystem(systemName);
-
-                if (es != null)
-                    _Talk.SaySystem(es);
-                else
-                    _Talk.RandomUnknownAck();
-            }
-            catch (FormatException e)
+            if (result.System != null)
             {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
+                if (result.Station != null)
+                {
+                    _Talk.SayStation(result.Station);
+                }
+                else
+                {
+                    _Talk.SayUnknownStation();
+                }
             }
-            catch (Exception e)
+            else
             {
-                AerDebug.LogException(e);
+                _Talk.SayUnknownSystem();
             }
         }
-        public void StationInfo_Handler(RecognitionResult result)
+        public void SetLocalSystem_Handler(AerRecognitionResult result)
         {
-            try
+            if (result.System != null)
             {
-                string systemName = result.Semantics["SystemName"].Value.ToString();
-                string stationName = result.Semantics["StationName"].Value.ToString();
-
-                EliteSystem es;
-
-                if (systemName.Equals("__local__"))
-                    es = _LocalSystem;
-                else
-                    es = _Eddb.GetSystem(systemName);
-
-                if (es != null)
-                {
-                    EliteStation est = _Eddb.GetStation(es, stationName);
-                    if (est != null)
-                    {
-                        _Talk.SayStation(est);
-                    }
-                    else
-                    {
-                        _Talk.SayUnknownStation();
-                    }
-                }
-                else
-                {
-                    _Talk.SayUnknownSystem();
-                }
+                _Talk.SaySetSystem(result.System);
+                _LocalSystem = result.System;
             }
-            catch (Exception e)
+            else
+                _Talk.RandomUnknownAck();
+        }
+        public void StarDistance_Handler(AerRecognitionResult result)
+        {
+            if ((result.System != null) && (_LocalSystem != null))
             {
-                AerDebug.LogException(e);
+
+                _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(result.System, _LocalSystem)));
+            }
+            else
+            {
+                _Talk.RandomUnknownAck();
             }
         }
-        public void SetLocalSystem_Handler(RecognitionResult result)
-        {
-            EliteSystem es = null;
-
-            try
-            {
-                string systemName = result.Semantics["SystemName"].Value.ToString();
-                AerDebug.Log("SystemName=" + systemName);
-                es = _Eddb.GetSystem(systemName);
-
-                if (es != null)
-                {
-                    _Talk.SaySetSystem(es);
-                    _LocalSystem = es;
-                }
-                else
-                    _Talk.RandomUnknownAck();
-            }
-            catch (FormatException e)
-            {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
-            }
-        }
-        public void StarDistance_Handler(RecognitionResult result)
-        {
-            EliteSystem es = null;
-
-            try 
-            {
-                string systemName = result.Semantics["SystemName"].Value.ToString();
-                AerDebug.Log("SystemName=" + systemName);
-
-                if (systemName.Equals("__local__"))
-                    es = _LocalSystem;
-                else
-                    es = _Eddb.GetSystem(systemName);
-
-                if ((es != null) && (_LocalSystem != null))
-                {
-
-                    _Talk.SayDistance(Math.Sqrt(_Eddb.DistanceSqr(es, _LocalSystem)));
-                }
-                else
-                {
-                    _Talk.RandomUnknownAck();
-                }
-            }
-            catch (FormatException e)
-            {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
-            }
-        }
-        public void AerCapabilities_Handler(RecognitionResult result)
+        public void AerCapabilities_Handler(AerRecognitionResult result)
         {
             _Talk.SayCapabilities();
         }
-        public void AerCreatorInfo_Handler(RecognitionResult result)
+        public void AerCreatorInfo_Handler(AerRecognitionResult result)
         {
             _Talk.SayCreaterInfo();
         }
-        public void AerIdentity_Handler(RecognitionResult result)
+        public void AerIdentity_Handler(AerRecognitionResult result)
         {
             _Talk.SayIdentity();
         }
-        public void PriceCheck_Handler(RecognitionResult result)
+        public void PriceCheck_Handler(AerRecognitionResult result)
         {
-            try
+            if (result.Commodity.AveragePrice <= 0)
             {
-                int commodity_id = int.Parse(result.Semantics["Data"].Value.ToString());
-                int price = _Eddb.GetPrice(commodity_id);
-                if (price <= 0)
-                {
-                    _Talk.RandomUnknownAck();
-                }
-                else
-                {
-                    _Talk.Say(price.ToString());
-                }
+                _Talk.RandomUnknownAck();
             }
-            catch (FormatException e)
+            else
             {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
+                _Talk.Say(result.Commodity.AveragePrice.ToString());
             }
         }
-        public void FindCommodity_Handler(RecognitionResult result)
+        public void FindCommodity_Handler(AerRecognitionResult result)
         {
-            EliteStation est;
-            try
+            if (_LocalSystem != null)
             {
-                int commodity_id = int.Parse(result.Semantics["Data"].Value.ToString());
-
-                if (_LocalSystem != null)
-                {
-                    est = _Eddb.FindCommodity(commodity_id, _LocalSystem, 250);
-                    if (est != null)
-                        _Talk.SayFoundCommodity(_Eddb.GetCommodity(commodity_id), est);
-                    else
-                        _Talk.SayCannotFindCommodity(_Eddb.GetCommodity(commodity_id));
-                }
+                EliteStation est = _Eddb.FindCommodity(result.Commodity.id, _LocalSystem, 250);
+                if (est != null)
+                    _Talk.SayFoundCommodity(result.Commodity, est);
                 else
-                    _Talk.SayUnknownLocation();
+                    _Talk.SayCannotFindCommodity(result.Commodity);
             }
-            catch (FormatException e)
-            {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
-            }
+            else
+                _Talk.SayUnknownLocation();
         }
-        public void CancelSpeech_Handler(RecognitionResult result)
+        public void CancelSpeech_Handler(AerRecognitionResult result)
         {
             _Talk.RandomAck();
         }
-        public void StartListening_Handler(RecognitionResult result)
+        public void StartListening_Handler(AerRecognitionResult result)
         {
             _Squelched = false;
             _Talk.SayStartListening();
 
         }
-        public void StopListening_Handler(RecognitionResult result)
+        public void StopListening_Handler(AerRecognitionResult result)
         {
             _Squelched = true;
             _Talk.SayStopListening();
         }
-        public void TypeLastSpelled_Handler(RecognitionResult result)
+        public void TypeLastSpelled_Handler(AerRecognitionResult result)
         {
             _Talk.RandomAck();
             _Keyboard.Type(_Talk.LastSpelledWord);
         }
-        public void EraseField_Handler(RecognitionResult result)
+        public void EraseField_Handler(AerRecognitionResult result)
         {
             _Talk.RandomAck();
             _Keyboard.ClearField();
         }
-        public void TypeDictation_Handler(RecognitionResult result)
+        public void TypeDictation_Handler(AerRecognitionResult result)
         {
-            try
+            _Talk.RandomAck();
+            _Keyboard.Type(result.Data);
+        }
+        public void TypeNato_Handler(AerRecognitionResult result)
+        {
+            _Talk.RandomAck();
+            _Keyboard.Type(result.Data);
+        }
+        public void TypeSystem_Handler(AerRecognitionResult result)
+        {
+            if (result.System != null)
             {
                 _Talk.RandomAck();
-                string SpokenText = result.Semantics["Data"].Value.ToString();
-                _Keyboard.Type(SpokenText);
+                _Keyboard.Type(result.System.Name);
             }
-            catch (FormatException e)
+            else
             {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
+                _Talk.RandomUnknownAck();
             }
         }
-        public void TypeNato_Handler(RecognitionResult result)
-        {
-            try
-            {
-                _Talk.RandomAck();
-                string SpokenText = result.Semantics["Data"].Value.ToString();
-                _Keyboard.Type(SpokenText);
-            }
-            catch (FormatException e)
-            {
-                AerDebug.LogError(@"Could not format semantic result for '" + result.Text + "', " + e.Message);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
-            }
-        }
-        public void TypeSystem_Handler(RecognitionResult result)
-        {
-            try
-            {
-                _Talk.RandomAck();
-                string systemName = result.Semantics["SystemName"].Value.ToString();
-                EliteSystem es;
-
-                if (systemName.Equals("__local__"))
-                    es = _LocalSystem;
-                else
-                    es = _Eddb.GetSystem(systemName);
-
-                _Keyboard.Type(es.Name);
-            }
-            catch (Exception e)
-            {
-                AerDebug.LogException(e);
-            }
-        }
-        public void TypeCurrentSystem_Handler(RecognitionResult result)
+        public void TypeCurrentSystem_Handler(AerRecognitionResult result)
         {
             _Talk.RandomAck();
             _Keyboard.Type(_LocalSystem.Name);
         }
-        public void StationDistance_Handler(RecognitionResult result)
+        public void StationDistance_Handler(AerRecognitionResult result)
         {
-            try
+            if(result.System != null)
             {
-                string systemName = result.Semantics["SystemName"].Value.ToString();
-                string stationName = result.Semantics["StationName"].Value.ToString();
-
-                EliteSystem es;
-
-                if (systemName.Equals("__local__"))
-                    es = _LocalSystem;
-                else
-                    es = _Eddb.GetSystem(systemName);
-
-                if(es != null)
+                if(result.Station != null)
                 {
-                    EliteStation est = _Eddb.GetStation(es, stationName);
-                    if(est != null)
-                    {
-                        _Talk.SayStationDistance(est);
-                    }
-                    else
-                    {
-                        _Talk.SayUnknownStation();
-                    }
+                    _Talk.SayStationDistance(result.Station);
                 }
                 else
                 {
-                    _Talk.SayUnknownSystem();
+                    _Talk.SayUnknownStation();
                 }
             }
-            catch (Exception e)
+            else
             {
-                AerDebug.LogException(e);
+                _Talk.SayUnknownSystem();
             }
         }
-        public void SayCurrentSystem_Handler(RecognitionResult result)
+        public void SayCurrentSystem_Handler(AerRecognitionResult result)
         {
             if (_LocalSystem != null)
                 _Talk.Say(_LocalSystem.Name);
@@ -527,7 +445,7 @@ namespace AerSpeech
                 _Talk.SayUnknownLocation();
 
         }
-        public void SayCurrentVersion_Handler(RecognitionResult result)
+        public void SayCurrentVersion_Handler(AerRecognitionResult result)
         {
             _Talk.Say("1.1");
 

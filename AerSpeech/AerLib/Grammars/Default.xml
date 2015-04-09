@@ -37107,12 +37107,12 @@
       <item>
         <ruleref uri="#PriceCheck" />
         <tag> out.Command = "PriceCheck" </tag>
-        <tag> out.Data = rules.PriceCheck.Commodity </tag>
+        <tag> out.CommodityId = rules.PriceCheck.Commodity </tag>
       </item>
       <item>
         <ruleref uri="#FindCommodity" />
         <tag> out.Command = "FindCommodity" </tag>
-        <tag> out.Data = rules.FindCommodity.Commodity </tag>       
+        <tag> out.CommodityId = rules.FindCommodity.Commodity </tag>       
       </item>
       <item>
         <ruleref uri="#StartListening" />

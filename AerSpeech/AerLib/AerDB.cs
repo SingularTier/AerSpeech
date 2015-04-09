@@ -52,6 +52,7 @@ namespace AerSpeech
         public bool HasRearm;
         public bool HasOutfitting;
         public bool HasShipyard;
+        public long UpdatedAt;
         public List<EliteCommodity> Imports;
         public List<EliteCommodity> Exports;
 
@@ -221,7 +222,7 @@ namespace AerSpeech
                     station.HasRearm = jo["has_rearm"].ToString().Equals("1");
                     station.HasOutfitting = jo["has_outfitting"].ToString().Equals("1");
                     station.HasShipyard = jo["has_shipyard"].ToString().Equals("1");
-
+                    station.UpdatedAt = long.Parse(jo["updated_at"].ToString());
                     foreach (string commodity in jo["export_commodities"])
                     {
                         EliteCommodity ec = GetCommodity(commodity);
