@@ -37365,7 +37365,6 @@
   <rule id="StartListening">
     <one-of>
       <item>Start Listening</item>
-      <item>Listen</item>
       <item>Hey listen</item>
     </one-of>
   </rule>
