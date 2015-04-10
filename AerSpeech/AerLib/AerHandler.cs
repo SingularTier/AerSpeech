@@ -97,7 +97,7 @@ namespace AerSpeech
             _GalnetEntry = 0;
             _JokeEntry = 0;
             _Keyboard = new AerKeyboard();
-            _GalnetRSS = new AerRSS("http://www.elitedangerous.com/news/galnet/rss");
+            _GalnetRSS = new AerRSS("http://www.elitedangerous.com/en/news/galnet/rss");
             _JokeRSS = new AerRSS("http://www.jokes2go.com/jspq.xml");
             _Wikipedia = new AerWiki();
             _Eddb = new AerDB(systemsJson, stationsJson, commoditiesJson);
@@ -241,7 +241,7 @@ namespace AerSpeech
 
                     if (!_Squelched)
                         _EventRegistry[input.Command](input);
-                    else if (input.Command.Equals("AerStartListening"))
+                    else if (input.Command.Equals("StartListening"))
                         _EventRegistry[input.Command](input);
                 }
                 else
@@ -258,6 +258,7 @@ namespace AerSpeech
         internal void ReadyToSpeak_Handler(object sender, LoadGrammarCompletedEventArgs e)
         {
             _Talk.SayReady();
+            AerDebug.Log("Initialization Complete.");
         }
 
         /// <summary>
