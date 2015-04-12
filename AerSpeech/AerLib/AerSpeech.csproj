@@ -51,7 +51,7 @@
     <Compile Include="AerInput.cs" />
     <Compile Include="AerKeyboard.cs" />
     <Compile Include="AerRSS.cs" />
-    <Compile Include="AerSpeechHandlerAttribute.cs" />
+    <Compile Include="SpeechHandlerAttribute.cs" />
     <Compile Include="AerTalk.cs" />
     <Compile Include="AerWiki.cs" />
     <Compile Include="Personality.cs" />
