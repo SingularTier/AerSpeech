@@ -616,6 +616,14 @@ namespace AerSpeech
 #endregion
 
 #region Utility Methods
+        public double DistanceSqr(EliteSystem es1, EliteSystem es2)
+        {
+            float x = es1.x - es2.x;
+            float y = es1.y - es2.y;
+            float z = es1.z - es2.z;
+
+            return (Math.Pow(x, 2) + Math.Pow(y, 2) + Math.Pow(z, 2));
+        }
         public EliteStation GetStation(EliteSystem es, string stationName)
         {
             List<EliteStation> matchingStations;
@@ -647,9 +655,10 @@ namespace AerSpeech
                 return ec.AveragePrice;
             }
         }
+        #region Find
         public EliteStation FindClosestBlackMarket(EliteSystem origin)
         {
-            List<EliteSystem> nearbySystems = GetSystemsAround(origin, 500);
+            List<EliteSystem> nearbySystems = _GetSystemsAround(origin, 500);
             EliteStation closest = null;
             List<EliteStation> stationsWithBlackMarket = new List<EliteStation>(); ;
             foreach (EliteSystem sys in nearbySystems)
@@ -661,8 +670,58 @@ namespace AerSpeech
                 stationsWithBlackMarket.AddRange(validStations);
             }
 
+            return _FindClosestStation(stationsWithBlackMarket, origin);
+        }
+        public EliteSystem FindClosestAllegiance(string Allegiance, EliteSystem origin)
+        {
+            List<EliteSystem> nearbySystems = _GetSystemsAround(origin, 500);
+            var validSystems = from system in nearbySystems
+                               where(system.Allegiance.ToLower().Equals(Allegiance.ToLower()))
+                               select system;
+
+            return _FindClosestSystem(validSystems.ToList(), origin);
+        }
+        public EliteStation FindCommodity(int commodity_id, EliteSystem origin, float distance)
+        {
+            List<EliteSystem> nearbySystems = _GetSystemsAround(origin, distance);
+
+
+            List<EliteStation> stationsWithCommodity = new List<EliteStation>(); ;
+            foreach(EliteSystem sys in nearbySystems)
+            {
+                var validStations = from stations in sys.Stations
+                                   from listing in stations.Listings
+                                    where ((listing.Commodity.id == commodity_id) && (listing.Supply > 0) && ((listing.SellPrice > 0)))
+                                   select stations;
+
+                stationsWithCommodity.AddRange(validStations);
+            }
+
+            return _FindClosestStation(stationsWithCommodity, origin);
+        }
+        #endregion
+        #region Helpers
+        private EliteSystem _FindClosestSystem(List<EliteSystem> inThese, EliteSystem origin)
+        {
             double closestDistance = 1000000; //Infinite
-            foreach (EliteStation es in stationsWithBlackMarket)
+            EliteSystem closest = null;
+            foreach (EliteSystem es in inThese)
+            {
+                double thisDistance = DistanceSqr(es, origin);
+                if (thisDistance <= closestDistance)
+                {
+                    closest = es;
+                    closestDistance = thisDistance;
+                }
+            }
+
+            return closest;
+        }
+        private EliteStation _FindClosestStation(List<EliteStation> inThese, EliteSystem origin)
+        {
+            EliteStation closest = null;
+            double closestDistance = 1000000; //Infinite
+            foreach (EliteStation es in inThese)
             {
                 double thisDistance = DistanceSqr(es.System, origin);
                 if (thisDistance <= closestDistance)
@@ -686,69 +745,7 @@ namespace AerSpeech
 
             return closest;
         }
-        public EliteSystem FindClosestAllegiance(string Allegiance, EliteSystem origin)
-        {
-            List<EliteSystem> nearbySystems = GetSystemsAround(origin, 500);
-            var validSystems = from system in nearbySystems
-                               where(system.Allegiance.ToLower().Equals(Allegiance.ToLower()))
-                               select system;
-
-            double closestDistance = 1000000; //Infinite
-            EliteSystem closest = null;
-            foreach (EliteSystem es in validSystems)
-            {
-                double thisDistance = DistanceSqr(es, origin);
-                if (thisDistance <= closestDistance)
-                {
-                    closest = es;
-                    closestDistance = thisDistance;
-                }
-            }
-
-            return closest;
-        }
-        public EliteStation FindCommodity(int commodity_id, EliteSystem origin, float distance)
-        {
-            List<EliteSystem> nearbySystems = GetSystemsAround(origin, distance);
-
-            EliteStation closest = null;
-            List<EliteStation> stationsWithCommodity = new List<EliteStation>(); ;
-            foreach(EliteSystem sys in nearbySystems)
-            {
-                var validStations = from stations in sys.Stations
-                                   from listing in stations.Listings
-                                    where ((listing.Commodity.id == commodity_id) && (listing.Supply > 0) && ((listing.SellPrice > 0)))
-                                   select stations;
-
-                stationsWithCommodity.AddRange(validStations);
-            }
-
-            double closestDistance = 1000000; //Infinite
-            foreach (EliteStation es in stationsWithCommodity)
-            {
-                double thisDistance = DistanceSqr(es.System, origin);
-                if (thisDistance <= closestDistance)
-                {
-                    //If the two stations are in the same system, choose the one closest to the star
-                    if ((closest != null) && (es.System.id == closest.System.id))
-                    {
-                        if(es.DistanceFromStar < closest.DistanceFromStar)
-                        {
-                            closest = es;
-                            closestDistance = thisDistance;
-                        }
-                    }
-                    else
-                    {
-                        closest = es;
-                        closestDistance = thisDistance;
-                    }
-                }
-            }
-
-            return closest;
-        }
-        public List<EliteSystem> GetSystemsAround(EliteSystem origin, float distance)
+        private List<EliteSystem> _GetSystemsAround(EliteSystem origin, float distance)
         {
             float distanceSqr = distance * distance;
             var SystemsInRange = from system in _SystemRegistry.Values
@@ -757,14 +754,8 @@ namespace AerSpeech
 
             return SystemsInRange.ToList<EliteSystem>();
         }
-        public double DistanceSqr(EliteSystem es1, EliteSystem es2)
-        {
-            float x = es1.x - es2.x;
-            float y = es1.y - es2.y;
-            float z = es1.z - es2.z;
+        #endregion
 
-            return (Math.Pow(x, 2) + Math.Pow(y, 2) + Math.Pow(z, 2));
-        }
 #endregion
     }
 }
