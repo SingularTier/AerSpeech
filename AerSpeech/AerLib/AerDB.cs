@@ -647,6 +647,66 @@ namespace AerSpeech
                 return ec.AveragePrice;
             }
         }
+        public EliteStation FindClosestBlackMarket(EliteSystem origin)
+        {
+            List<EliteSystem> nearbySystems = GetSystemsAround(origin, 500);
+            EliteStation closest = null;
+            List<EliteStation> stationsWithBlackMarket = new List<EliteStation>(); ;
+            foreach (EliteSystem sys in nearbySystems)
+            {
+                var validStations = from stations in sys.Stations
+                                    where (stations.HasBlackmarket == true)
+                                    select stations;
+
+                stationsWithBlackMarket.AddRange(validStations);
+            }
+
+            double closestDistance = 1000000; //Infinite
+            foreach (EliteStation es in stationsWithBlackMarket)
+            {
+                double thisDistance = DistanceSqr(es.System, origin);
+                if (thisDistance <= closestDistance)
+                {
+                    //If the two stations are in the same system, choose the one closest to the star
+                    if ((closest != null) && (es.System.id == closest.System.id))
+                    {
+                        if (es.DistanceFromStar < closest.DistanceFromStar)
+                        {
+                            closest = es;
+                            closestDistance = thisDistance;
+                        }
+                    }
+                    else
+                    {
+                        closest = es;
+                        closestDistance = thisDistance;
+                    }
+                }
+            }
+
+            return closest;
+        }
+        public EliteSystem FindClosestAllegiance(string Allegiance, EliteSystem origin)
+        {
+            List<EliteSystem> nearbySystems = GetSystemsAround(origin, 500);
+            var validSystems = from system in nearbySystems
+                               where(system.Allegiance.ToLower().Equals(Allegiance.ToLower()))
+                               select system;
+
+            double closestDistance = 1000000; //Infinite
+            EliteSystem closest = null;
+            foreach (EliteSystem es in validSystems)
+            {
+                double thisDistance = DistanceSqr(es, origin);
+                if (thisDistance <= closestDistance)
+                {
+                    closest = es;
+                    closestDistance = thisDistance;
+                }
+            }
+
+            return closest;
+        }
         public EliteStation FindCommodity(int commodity_id, EliteSystem origin, float distance)
         {
             List<EliteSystem> nearbySystems = GetSystemsAround(origin, distance);

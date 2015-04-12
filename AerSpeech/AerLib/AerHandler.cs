@@ -74,7 +74,11 @@ namespace AerSpeech
 
         private int _GalnetEntry; //Current galnet entry index
         private int _JokeEntry;   //Current joke entry index
-        public bool _Squelched;
+        private bool _Squelched;
+        private int _StopListeningTime;
+        DateTime _LastQueryTime;
+
+       
 #endregion
 
 #region Constructors
@@ -102,6 +106,7 @@ namespace AerSpeech
             _Wikipedia = new AerWiki();
             _Eddb = new AerDB(systemsJson, stationsJson, commoditiesJson);
             _EventRegistry = new Dictionary<string, AerInputHandler>();
+            _StopListeningTime = 30; //30 seconds
 
             RegisterDefaultHandlers();
         }
@@ -233,16 +238,40 @@ namespace AerSpeech
             {
                 return;
             }
-
             if (input.Command != null)
             {
                 if (_EventRegistry.ContainsKey(input.Command))
                 {
 
                     if (!_Squelched)
-                        _EventRegistry[input.Command](input);
+                    {
+                        TimeSpan elapsed = DateTime.UtcNow.Subtract(_LastQueryTime);
+                        if (input.Command.Equals("AerEndQuery"))
+                        {
+                            //Do nothing until Aer is addressed again...
+                            _LastQueryTime = DateTime.UtcNow.Subtract(new TimeSpan(0,0,_StopListeningTime));
+                            _EventRegistry[input.Command](input);
+                        }
+                        else if (elapsed.TotalSeconds < _StopListeningTime)
+                        {
+                            _LastQueryTime = DateTime.UtcNow;
+                            _EventRegistry[input.Command](input);
+                        }
+                        else if (input.Command.Equals("AerQuery"))
+                        {
+                            _LastQueryTime = DateTime.UtcNow;
+                            _EventRegistry[input.Command](input);
+                        }
+                        else
+                        {
+                            //Do nothing until Aer is addressed again...
+                        }
+                    }
                     else if (input.Command.Equals("StartListening"))
+                    {
+                        _LastQueryTime = DateTime.UtcNow;
                         _EventRegistry[input.Command](input);
+                    }
                 }
                 else
                 {
@@ -269,10 +298,12 @@ namespace AerSpeech
             //TODO: Maybe use Reflection and Attribute Tags to pull in this data manually
             _EventRegistry.Add("Greetings", Greetings_Handler);
             _EventRegistry.Add("AerQuery", AerQuery_Handler);
+            _EventRegistry.Add("AerEndQuery", AerEndQuery_Handler);
             _EventRegistry.Add("SearchWiki", SearchWiki_Handler);
             _EventRegistry.Add("BrowseGalnet", BrowseGalnet_Handler);
             _EventRegistry.Add("NextArticle", NextArticle_Handler);
             _EventRegistry.Add("ReadArticle", ReadArticle_Handler);
+            _EventRegistry.Add("PreviousArticle", PreviousArticle_Handler);
             _EventRegistry.Add("TellJoke", TellJoke_Handler); 
             _EventRegistry.Add("Instruction", Instruction_Handler);
             _EventRegistry.Add("SystemInfo", SystemInfo_Handler);
@@ -298,7 +329,13 @@ namespace AerSpeech
             _EventRegistry.Add("TypeCurrentSystem", TypeCurrentSystem_Handler);
             _EventRegistry.Add("StationDistance", StationDistance_Handler);
             _EventRegistry.Add("SayCurrentSystem", SayCurrentSystem_Handler);
-            _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler); 
+            _EventRegistry.Add("SayCurrentVersion", SayCurrentVersion_Handler);
+            _EventRegistry.Add("AllegianceDistance", AllegianceDistance_Handler);
+            _EventRegistry.Add("StationInfo-Allegiance", StationInfoAllegiance_Handler);
+            _EventRegistry.Add("StationInfo-MaxLandingPadSize", StationInfoMaxLandingPadSize_Handler);
+            _EventRegistry.Add("StationInfo-KnownServices", StationInfoKnownServices_Handler);
+            _EventRegistry.Add("StationInfo-DistanceFromStar", StationDistance_Handler);
+            _EventRegistry.Add("Nearest-BlackMarket", NearestBlackMarket_Handler);
         }
 
 #region Debug
@@ -311,12 +348,81 @@ namespace AerSpeech
 #endregion
 
 #region Grammar Rule Handlers
-
-        private void AerCloseTerminal_Handler(AerRecognitionResult result)
+        public void NearestBlackMarket_Handler(AerRecognitionResult result)
+        {
+            if (LocalSystem == null)
+                _Talk.SayUnknownLocation();
+            else
+            {
+                EliteStation est = _Eddb.FindClosestBlackMarket(LocalSystem);
+                if (est != null)
+                {
+                    _Talk.SayFoundStation(est);
+                }
+                else
+                {
+                    _Talk.RandomUnknownAck();
+                }
+            }
+        }
+        public void StationInfoAllegiance_Handler(AerRecognitionResult result)
+        {
+            if (result.System != null)
+            {
+                if (result.Station != null)
+                {
+                    _Talk.SayStationAllegiance(result.Station);
+                }
+                else
+                {
+                    _Talk.SayUnknownStation();
+                }
+            }
+            else
+            {
+                _Talk.SayUnknownSystem();
+            }
+        }
+        public void StationInfoMaxLandingPadSize_Handler(AerRecognitionResult result)
+        {
+            if (result.System != null)
+            {
+                if (result.Station != null)
+                {
+                    _Talk.SayStationMaxLandingPadSize(result.Station);
+                }
+                else
+                {
+                    _Talk.SayUnknownStation();
+                }
+            }
+            else
+            {
+                _Talk.SayUnknownSystem();
+            }
+        }
+        public void StationInfoKnownServices_Handler(AerRecognitionResult result)
+        {
+            if (result.System != null)
+            {
+                if (result.Station != null)
+                {
+                    _Talk.SayStationServices(result.Station);
+                }
+                else
+                {
+                    _Talk.SayUnknownStation();
+                }
+            }
+            else
+            {
+                _Talk.SayUnknownSystem();
+            }
+        }
+        public void AerCloseTerminal_Handler(AerRecognitionResult result)
         {
             Environment.Exit(0);
         }
-
         public void Greetings_Handler(AerRecognitionResult result)
         {
             _Talk.RandomGreetings();
@@ -324,6 +430,10 @@ namespace AerSpeech
         public void AerQuery_Handler(AerRecognitionResult result)
         {
             _Talk.RandomQueryAck();
+        }
+        public void AerEndQuery_Handler(AerRecognitionResult result)
+        {
+            _Talk.RandomQueryEndAck();
         }
         public void SearchWiki_Handler(AerRecognitionResult result)
         {
@@ -333,6 +443,7 @@ namespace AerSpeech
         }
         public void BrowseGalnet_Handler(AerRecognitionResult result)
         {
+            _GalnetEntry = 0;
             if(_GalnetRSS.Loaded)
                 _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
             else
@@ -345,6 +456,20 @@ namespace AerSpeech
                 _GalnetEntry++;
 
                 if (_GalnetEntry >= _GalnetRSS.Entries.Count)
+                    _GalnetEntry = 0;
+
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            }
+            else
+                _Talk.RandomNack();
+        }
+        public void PreviousArticle_Handler(AerRecognitionResult result)
+        {
+            if (_GalnetRSS.Loaded)
+            {
+                _GalnetEntry--;
+
+                if (_GalnetEntry < 0)
                     _GalnetEntry = 0;
 
                 _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
@@ -377,8 +502,7 @@ namespace AerSpeech
             else
                 _Talk.RandomUnknownAck();
         }
-
-        private void LastStationInfo_Handler(AerRecognitionResult result)
+        public void LastStationInfo_Handler(AerRecognitionResult result)
         {
             if (_LastStation != null)
             {
@@ -389,7 +513,6 @@ namespace AerSpeech
                 _Talk.SayUnknownStation();
             }
         }
-
         public void StationInfo_Handler(AerRecognitionResult result)
         {
 
@@ -430,7 +553,6 @@ namespace AerSpeech
                 _Talk.RandomUnknownAck();
             }
         }
-
         public void StarToStarDistance_Handler(AerRecognitionResult result)
         {
             if ((result.FromSystem != null) && (result.ToSystem != null))
@@ -442,7 +564,6 @@ namespace AerSpeech
                 _Talk.RandomUnknownAck();
             }
         }
-
         public void AerSetSystem_Handler(AerRecognitionResult result)
         {
             if (result.System != null)
@@ -450,7 +571,6 @@ namespace AerSpeech
                 LocalSystem = result.System;
             }
         }
-
         public void AerCapabilities_Handler(AerRecognitionResult result)
         {
             _Talk.SayCapabilities();
@@ -572,6 +692,25 @@ namespace AerSpeech
         public void SayCurrentVersion_Handler(AerRecognitionResult result)
         {
             _Talk.Say(AerDebug.VERSION_NUMBER);
+
+        }
+        public void AllegianceDistance_Handler(AerRecognitionResult result)
+        {
+            if(LocalSystem == null)
+                _Talk.SayUnknownLocation();
+            else
+            {
+                EliteSystem es = _Eddb.FindClosestAllegiance(result.Data, LocalSystem);
+                if(es != null)
+                {
+                    _LastSystem = es;
+                    _Talk.SayAndSpell(es.Name);
+                }
+                else
+                {
+                    _Talk.RandomUnknownAck();
+                }
+            }
 
         }
 #endregion

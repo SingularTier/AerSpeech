@@ -41,7 +41,7 @@ namespace AerSpeech
 
         public void SayReady()
         {
-            this.Say("I am ready. If you want me to respond to your commands, say 'Start Listening'.");
+            this.Say("I am ready. If you want me to respond to your commands, say 'Hey Aer'");
         }
 
         public void SayBlocking(string text)
@@ -77,6 +77,22 @@ namespace AerSpeech
                     break;
                 case 2:
                     this.Say("Yes Commander?");
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public void RandomQueryEndAck()
+        {
+            int rsp = rand.Next(0, 2);
+            switch (rsp)
+            {
+                case 0:
+                    this.Say("You're Welcome");
+                    break;
+                case 1:
+                    this.Say("No Problem");
                     break;
                 default:
                     break;
@@ -149,11 +165,47 @@ namespace AerSpeech
                                     To browse Galnet, say 'browse galnet', 'next article', and 'read article'.
                                     To Search Wikipedia, say 'Search wikipedia for', followed by the NATO alphabet spelling of what you would like to search.
                                     To disable all command processing, say 'Stop Listening'. To Resume processing, say 'Start Listening'.
-                                    You can customize my commands in the default.xml file, found in my Grammars folder.
-    ";
+                                    You can customize my commands in the default.xml file, found in my Grammars folder.";
                                     
             this.Say(instructions);
         }
+
+        public void SayStationAllegiance(EliteStation est)
+        {
+            this.Say(est.Allegiance);
+        }
+        public void SayStationMaxLandingPadSize(EliteStation est)
+        {
+            this.Say(est.MaxPadSize);
+        }
+
+        public void SayStationServices(EliteStation est)
+        {
+            StringBuilder stationInfo = new StringBuilder();
+
+            stationInfo.Append("Known Available Services");
+            if (est.HasCommodities)
+                stationInfo.Append(", Commodities");
+            if (est.HasRefuel)
+                stationInfo.Append(", Refuel");
+            if (est.HasRepair)
+                stationInfo.Append(", Repair");
+            if (est.HasRearm)
+                stationInfo.Append(", Rearm");
+            if (est.HasOutfitting)
+                stationInfo.Append(", Outfitting");
+            if (est.HasShipyard)
+                stationInfo.Append(", Shipyard");
+            if (est.HasBlackmarket)
+                stationInfo.Append(", Black Market");
+
+            this.Say(stationInfo.ToString());
+        }
+        public void SayAndSpell(string say)
+        {
+            this.Say(say + ", Spelled " + Spell(say));
+        }
+
         public void SaySystem(EliteSystem es)
         {
 
@@ -193,13 +245,15 @@ namespace AerSpeech
         }
         public void SayFoundCommodity(EliteCommodity ec, EliteStation est)
         {
-            string spellName = Regex.Replace(est.System.Name, @"(?<=.)(?!$)", ",");
             this.Say("You can find " + ec.Name + ", at " + est.Name + ", in " + est.System.Name + ", Spelled " + Spell(est.System.Name));
         }
-
+        public void SayFoundStation(EliteStation est)
+        {
+            this.Say(est.Name + ", in " + est.System.Name + ", Spelled " + Spell(est.System.Name));
+        }
         public string Spell(string spellMe)
         {
-            string spellName = Regex.Replace(spellMe, @"(?<=.)(?!$)", ",");
+            string spellName = Regex.Replace(spellMe, @"(?<=[^0-9])(?!$)", ",");
             LastSpelledWord = spellMe;
             return spellName;
         }

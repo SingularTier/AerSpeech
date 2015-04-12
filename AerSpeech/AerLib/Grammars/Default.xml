@@ -37054,6 +37054,10 @@
         <tag> out.Command = "NextArticle"</tag>
       </item>
       <item>
+        <ruleref uri="#PreviousArticle" />
+        <tag> out.Command = "PreviousArticle"</tag>
+      </item>
+      <item>
         <ruleref uri="#TellJoke" />
         <tag> out.Command = "TellJoke"</tag>
       </item>
@@ -37096,6 +37100,10 @@
       <item>
         <ruleref uri="#AerQuery" />
         <tag> out.Command = "AerQuery" </tag>
+      </item>
+      <item>
+        <ruleref uri="#AerEndQuery" />
+        <tag> out.Command = "AerEndQuery" </tag>
       </item>
       <item>
         <ruleref uri="#AerCapabilities" />
@@ -37169,8 +37177,23 @@
         <tag> out.SystemName  = rules.SystemName.Name</tag>
       </item>
       <item>
+        <ruleref uri="#AllegianceDistance" />
+        <tag> out.Command = "AllegianceDistance"</tag>
+        <tag> out.Data = rules.AllegianceDistance.Allegiance</tag>
+      </item>
+      <item>
         <ruleref uri="#SayCurrentVersion" />
         <tag> out.Command = "SayCurrentVersion" </tag>
+      </item>
+      <item>
+        <ruleref uri="#StationInfoSpecific" />
+        <tag> out.Command = rules.StationInfoSpecific.Command </tag>
+        <tag> out.StationName = rules.StationName.Name</tag>
+        <tag> out.SystemName  = rules.SystemName.Name</tag>
+      </item>
+      <item>
+        <ruleref uri="#NearestStationWith" />
+        <tag> out.Command = rules.NearestStationWith.Command </tag>
       </item>
       <item>
         <ruleref uri="#CancelSpeech" />
@@ -37179,6 +37202,83 @@
     </one-of>  
   </rule>
 
+  <rule id="NearestStationWith">
+    <item> what </item>
+    <one-of>
+      <item> are </item>
+      <item> is </item>
+    </one-of>
+    <item>the</item>
+    <one-of>
+      <item>nearest</item>
+      <item>closest</item>
+    </one-of>
+    <one-of>
+      <item> Black Market <tag> out.Command="Nearest-BlackMarket"</tag> </item>
+    </one-of> 
+  </rule>
+  
+  <rule id="StationInfoSpecific">
+    <one-of>
+      <item>
+        <item repeat="0-1">
+          <ruleref uri="#CommandPrefix" />
+        </item>
+        <item>tell me the</item>
+      </item>
+      <item>
+        <item> what </item>
+        <one-of>
+          <item> are </item>
+          <item> is </item>
+        </one-of>
+        <item>the</item>
+      </item>
+    </one-of>
+    <one-of>
+      <item> Allegiance <tag> out.Command="StationInfo-Allegiance"</tag> </item>
+      <item> Max Landing Pad Size <tag> out.Command="StationInfo-MaxLandingPadSize"</tag> </item>
+      <item> Known Services <tag> out.Command="StationInfo-KnownServices"</tag> </item>
+      <item>
+        <item> Distance from </item>
+        <item repeat="0-1"> the </item>
+        <one-of>
+          <item> star </item>
+          <item> sun </item>
+        </one-of>
+        <tag> out.Command="StationInfo-DistanceFromStar</tag>
+      </item>
+    </one-of>
+    <item>of </item>
+    <ruleref uri="#StationName" />
+    <item>in</item>
+    <ruleref uri="#SystemName" />
+  </rule>
+
+  <rule id="AskForTime">
+    <item>What time is it?</item>
+  </rule>
+  
+  <rule id="AllegianceDistance">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <one-of>
+      <item> What is the </item>
+      <item> Find the </item>
+    </one-of>
+    <one-of>
+      <item> nearest </item>
+      <item> closest </item>
+    </one-of>
+    <one-of>
+        <item>Empire <tag> out.Allegiance="Empire"</tag></item>
+        <item>Alliance <tag> out.Allegiance="Alliance"</tag></item>
+        <item>Federation <tag> out.Allegiance="Federation"</tag></item>
+    </one-of>
+    <item>system</item>
+  </rule>
+  
   <rule id="StarToStarDistance">
     <item> How far is </item>
     <item>
@@ -37365,16 +37465,12 @@
   <rule id="StartListening">
     <one-of>
       <item>Start Listening</item>
-      <item>Hey listen</item>
     </one-of>
   </rule>
 
   <rule id="StopListening">
     <one-of>
       <item>Stop listening</item>
-      <item>Leave me alone</item>
-      <item>Ignore me</item>
-      <item>Thank you</item>
     </one-of>
   </rule>
   
@@ -37398,21 +37494,20 @@
   <rule id="StarDistance">
     <one-of>
       <item>
-        <item> How far</item>
-        <item repeat="0-1">away</item>
-        <item> is </item>
-        <item repeat="0-1">it to</item>
+          <item> How far</item>
+          <item repeat="0-1">away</item>
+          <item> is </item>
+          <item repeat="0-1">it to</item>
       </item>
       <item>
         <item> what is the distance</item>
         <one-of>
-          <item repeat="0-1">of</item>
-          <item repeat="0-1">to</item>
+          <item>of</item>
+          <item>to</item>
         </one-of>
       </item>
     </one-of>
     <ruleref uri="#SystemName"></ruleref>
-    <item repeat="0-1">from here</item>
   </rule>
 
   <rule id="SystemName">
@@ -37508,7 +37603,10 @@
     <item repeat="0-1">
       <ruleref uri="#CommandPrefix" />
     </item>
-    <item>Information on</item>
+    <one-of>
+      <item>Information on</item>
+      <item>tell me about </item>
+    </one-of>
     <item>
       <ruleref uri="#SystemName" />
     </item>
@@ -37516,6 +37614,12 @@
 
   <rule id="AerQuery">
     <item> Hey Aer </item>
+  </rule>
+
+  <rule id="AerEndQuery">
+    <item> Thanks Aer </item>
+    <item> Thank You </item>
+    <item> Nevermind </item>
   </rule>
   
   <rule id="AerCapabilities">
@@ -37542,7 +37646,6 @@
     <one-of>
       <item> Stop Talking </item>
       <item> Shutup </item>
-      <item> shut the fuck up </item>
       <item> Be Quiet </item>
     </one-of>
     <item repeat="0-1">Aer</item>
@@ -37556,6 +37659,13 @@
       <item>read</item>
     </one-of>
     <item>Galnet</item>
+  </rule>
+  <rule id="PreviousArticle">
+    <one-of>
+      <item>Previous Article</item>
+      <item>Previous Headline</item>
+    </one-of>
+    <item repeat="0-1">please</item>
   </rule>
   <rule id="NextArticle">
     <one-of>
@@ -37628,36 +37738,27 @@
     <item repeat="0-1">
       <one-of>
         <item>I need</item>
-        <item>I need you to</item>
+        <item>I need you</item>
         <item>can I</item>
-        <item>can I have</item>
-        <item>can I have you</item>
         <item>can you</item>
-        <item>I would like to</item>
         <item>I would like</item>
         <item>could I</item>
         <item>could you</item>
       </one-of>
     </item>
-    <item repeat="0-1">please</item>
-  </rule>
-
-  <rule id="StrictCommandPrefix">
-    <item repeat="0-1">please</item>
-    <item repeat="0-1">Aer</item>
-    <item repeat="0-1">please</item>
+    <item repeat="0-1">to</item>
     <item repeat="0-1">
       <one-of>
-        <item>can you</item>
-        <item>could you</item>
+        <item> give me</item>
+        <item> tell me</item>
+        <item> have </item>
       </one-of>
     </item>
-    <item repeat="0-1">please</item>
   </rule>
 
   <rule id="TellJoke">
     <item repeat="0-1">
-      <ruleref uri="#StrictCommandPrefix" />
+      <ruleref uri="#CommandPrefix" />
     </item>
     <one-of>
       <item>tell me a joke</item>
@@ -37666,18 +37767,9 @@
   </rule>
 
   <rule id="Instructions">
-    <one-of>
-      <item>
-        <item repeat="0-1">
-          <ruleref uri="#StrictCommandPrefix" />
-        </item>
-        <one-of>
-          <item> give me</item>
-          <item> tell me</item>
-        </one-of>
-      </item>
-      <item>I need</item>
-    </one-of>
+    <item>
+      <ruleref uri="#CommandPrefix" />
+    </item>
     <one-of>
       <item> instructions </item>
       <item> directions </item>
