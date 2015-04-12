@@ -26,7 +26,9 @@ namespace AerSpeechConsole
 
             Personality person = new Personality(talk, data);
             _AerHandler = new AerHandler(data, person);
-            _AerInput = new AerInput(@"Grammars\", person.GrammarLoaded_Handler);
+            //I know this is bad, but there's no good way to get the delegate surfaced out of AerInput in to AerTalk yet.
+            // This could be solved with a service registry, but I haven't thought that through yet
+            _AerInput = new AerInput(@"Grammars\", person.GrammarLoaded_Handler); 
 
             HandleInput();
         }

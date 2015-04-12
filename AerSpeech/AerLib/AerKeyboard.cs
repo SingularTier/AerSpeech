@@ -10,7 +10,8 @@ namespace AerSpeech
 {
 
     /// <summary>
-    /// Keyboard Emulation
+    /// Keyboard Emulation. Magic.
+    /// Marshalls SendInput() from user32.dll to pretend we're a keyboard.
     /// </summary>
     public class AerKeyboard
     {

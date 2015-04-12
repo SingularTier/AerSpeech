@@ -14,7 +14,8 @@ namespace AerSpeech
     /// Controls all of AER's responses. 
     /// </summary>
     /// <remarks>This needs cleaning as well. Essentially it could  use a re-design to get rid 
-    ///    of the flat interface design. Maybe event driven responses?</remarks>
+    ///    of the flat interface design. Maybe event driven responses? -SingularTier
+    /// </remarks>
     public class AerTalk
     {
         private SpeechSynthesizer _synth;

@@ -21,13 +21,17 @@ namespace AerSpeech
         public RecognitionResult LastResult;
         public bool NewInput;
 
+        //I know that GrammarLoaded is bad, but there's no good way to get the delegate surfaced out of AerInput in to AerTalk yet.
+        // This could be solved with a service registry, but I haven't thought that through yet.
+        // It could also be solved by using RecognitionEngine.LoadGrammar() instead of the Async version again, but
+        // I rather like the async version.
         public AerInput(string pathToGrammar = @"Grammars\", EventHandler<LoadGrammarCompletedEventArgs> GrammarLoaded = null)
         {
             RecognitionEngine = new SpeechRecognitionEngine(new CultureInfo("en-US"));
             RecognitionEngine.SetInputToDefaultAudioDevice();
             LoadGrammar(pathToGrammar, GrammarLoaded);
             RecognitionEngine.SpeechRecognized += this.SpeechRecognized_Handler;
-            RecognitionEngine.UpdateRecognizerSetting("ResponseSpeed", 750);
+            RecognitionEngine.UpdateRecognizerSetting("ResponseSpeed", 750); //TODO: 750 should be a setting -SingularTier
             NewInput = false;
             RecognitionEngine.RecognizeAsync(RecognizeMode.Multiple);
         }
@@ -42,8 +46,9 @@ namespace AerSpeech
             Grammar grammar = new Grammar(pathToGrammar + @"Default.xml");
             RecognitionEngine.LoadGrammarCompleted += GrammarLoaded;
             RecognitionEngine.LoadGrammarAsync(grammar);
-
         }
+
+
 
         /// <summary>
         /// Handles the SpeechRecognized event from the Recognition Engine

@@ -15,7 +15,7 @@ namespace AerSpeech
     /// </summary>
     public static class AerDebug
     {
-        public static string VERSION_NUMBER = "1.2";
+        public static string VERSION_NUMBER = "1.2p2";
 
         static bool _Init = false;
         static StreamWriter _LogFile;

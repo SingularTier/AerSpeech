@@ -28,9 +28,14 @@ namespace AerSpeech
     }
 
     /// <summary>
-    /// Default Handler for incomming speech results. Populates AerRecognitionResult and
-    /// hands the data off to the personality handling it.
+    /// Default Handler for incoming RecognitionResults. Populates AerRecognitionResult and
+    /// hands the data off to the personality. Advanced tactics for massaging grammar/data before
+    /// handing it off should be done here. This include homophone parsing, confidence heuristics/state,
+    /// Last/Previous substitions, dictation corrections, etc.
     /// </summary>
+    /// <remarks>
+    /// TODO: Remove some dependency Personality or make it an interface. -SingularTier
+    /// </remarks>
     public class AerHandler
     {
         private AerDB _Data;
@@ -74,7 +79,7 @@ namespace AerSpeech
 
                     if (systemName.Equals("__last__"))
                     {
-                        output.System = _Personality.LastSystem;
+                        output.System = _Personality.LastSystem; 
                     }
 
                     else
@@ -85,7 +90,7 @@ namespace AerSpeech
                             output.System = _Data.GetSystem(systemName);
                     }
 
-                    _Personality.LastSystem = output.System;
+                    _Personality.LastSystem = output.System;  //TODO: Remove this somehow
 
                     numberOfSemantics++;
                 }
@@ -138,7 +143,7 @@ namespace AerSpeech
                     {
                         output.Station = _Data.GetStation(output.System, station);
 
-                        _Personality.LastStation = output.Station;
+                        _Personality.LastStation = output.Station; //TODO: Remove this somehow
                     }
 
                     numberOfSemantics++;

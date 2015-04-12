@@ -16,8 +16,11 @@ namespace AerSpeech
     public delegate void AerInputHandler(AerRecognitionResult result);
 
     /// <summary>
-    /// Represents a way to Handle the incomming Requests, works with AerTalk.
+    /// Represents a way to Handle the incoming Requests, works with AerTalk and AerDB. Has State.
     /// </summary>
+    /// <remarks>
+    /// TODO: I would LOVE to get the dependency on AerDB REMOVED from this class, but that may be a pipe dream -SingularTier
+    /// </remarks>
     public class Personality
     {
         private AerTalk _Talk;
@@ -63,7 +66,6 @@ namespace AerSpeech
 
             _Data = data;
             _Talk = voiceSynth;
-
             _Talk.SayInitializing();
             _EventRegistry = new Dictionary<string, AerInputHandler>();
             _Keyboard = new AerKeyboard();
@@ -72,41 +74,57 @@ namespace AerSpeech
             _Wikipedia = new AerWiki();
             _StopListeningTime = 30; //30 seconds
 
-            RegisterDefaultHandlers();
+            _RegisterDefaultHandlers();
         }
 
+        /// <summary>
+        /// Handles input form the AerHandler
+        /// </summary>
+        /// <param name="input"></param>
         public void RecognizedInput(AerRecognitionResult input)
         {
             if (input.Confidence < input.RequiredConfidence)
             {
-                //Do homophone handling
                 return;
             }
 
             if (input.Command != null)
-            {
+            { 
                 if (_EventRegistry.ContainsKey(input.Command))
                 {
-                    TimeSpan elapsed = DateTime.UtcNow.Subtract(_LastQueryTime);
-                    if (input.Command.Equals("AerEndQuery"))
+                    //If we haven't said 'stop listening'
+                    if (!_Squelched)
                     {
-                        //Do nothing until Aer is addressed again...
-                        _LastQueryTime = DateTime.UtcNow.Subtract(new TimeSpan(0, 0, _StopListeningTime));
-                        _EventRegistry[input.Command](input);
-                    }
-                    else if (elapsed.TotalSeconds < _StopListeningTime)
-                    {
-                        _LastQueryTime = DateTime.UtcNow;
-                        _EventRegistry[input.Command](input);
-                    }
-                    else if (input.Command.Equals("AerQuery"))
-                    {
-                        _LastQueryTime = DateTime.UtcNow;
-                        _EventRegistry[input.Command](input);
+                        TimeSpan elapsed = DateTime.UtcNow.Subtract(_LastQueryTime);
+                        if (input.Command.Equals("AerEndQuery"))
+                        {
+                            //Do nothing until Aer is addressed again...
+                            //This makes (_LastQueryTime + elapsed time) > _StopListeningTime
+                            _LastQueryTime = DateTime.UtcNow.Subtract(new TimeSpan(0, 0, _StopListeningTime));
+                            _EventRegistry[input.Command](input);
+                        }
+                        else if (elapsed.TotalSeconds < _StopListeningTime)
+                        {
+                            _LastQueryTime = DateTime.UtcNow;
+                            _EventRegistry[input.Command](input);
+                        }
+                        else if (input.Command.Equals("AerQuery"))
+                        {
+                            _LastQueryTime = DateTime.UtcNow;
+                            _EventRegistry[input.Command](input);
+                        }
+                        else
+                        {
+                            //Do nothing until Aer is addressed again...
+                        }
                     }
                     else
                     {
-                        //Do nothing until Aer is addressed again...
+                        //If we said 'start listening' to end squelch state
+                        if (input.Command.Equals("StartListening"))
+                        {
+                            _EventRegistry[input.Command](input);
+                        }
                     }
                 }
                 else
@@ -120,7 +138,11 @@ namespace AerSpeech
             }
         }
 
-        public void RegisterDefaultHandlers()
+        /// <summary>
+        /// Uses reflection to pull out all SpeechHandlerAttribute tags and creates a Rule->Delegate dictionary
+        /// from the data.
+        /// </summary>
+        private void _RegisterDefaultHandlers()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             IEnumerable<MemberInfo> handlers = assembly.GetTypes().SelectMany(type => type.GetMembers())
@@ -132,7 +154,7 @@ namespace AerSpeech
                 Object[] attribs = mi.GetCustomAttributes(typeof(SpeechHandlerAttribute), false);
                 for (int i = 0; i < attribs.Length; i++)
                 {
-                    AerDebug.Log("Found Handler: " + ((SpeechHandlerAttribute)attribs[i]).GrammarRule);
+                    //AerDebug.Log("Found Handler: " + ((SpeechHandlerAttribute)attribs[i]).GrammarRule);
                     if (mi.MemberType == MemberTypes.Method)
                     {
                         AerInputHandler Call = (AerInputHandler)Delegate.CreateDelegate(typeof(AerInputHandler), this, mi.Name);
@@ -144,11 +166,27 @@ namespace AerSpeech
             }
         }
 
+        /// <summary>
+        /// Registers a new handler for a command
+        /// </summary>
+        /// <param name="Command"></param>
+        /// <param name="handler"></param>
         public void RegisterHandler(string Command, AerInputHandler handler)
         {
-            _EventRegistry.Add(Command, handler);
+            if (!_EventRegistry.ContainsKey(Command))
+                _EventRegistry.Add(Command, handler);
+            else
+            {
+                AerDebug.LogError("Re-registered command to new handler, command=" + Command);
+                _EventRegistry[Command] = handler; //Maybe it should just be thrown away?
+            }
         }
 
+        /// <summary>
+        /// An ugly mess. This is used by AerInput spaghetti code to notify the user when the grammar is loaded.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void GrammarLoaded_Handler(object sender, LoadGrammarCompletedEventArgs e)
         {
             _Talk.SayReady();
