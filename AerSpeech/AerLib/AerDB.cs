@@ -119,8 +119,12 @@ namespace AerSpeech
         private Dictionary<string, int> _CommodityNameRegistry;
         public bool Loaded = false;
 
-        public AerDB(string systemsJson, string stationsJson, string commoditiesJson)
+        public AerDB(string pathToJsonFiles = @"json\")
         {
+            string systemsJson = pathToJsonFiles + @"systems.json";
+            string commoditiesJson = pathToJsonFiles + @"commodities.json";
+            string stationsJson = pathToJsonFiles + @"stations.json";
+
             _SystemRegistry = new Dictionary<int, EliteSystem>();
             _SystemNameRegistry = new Dictionary<string, int>();
             _CommodityRegistry = new Dictionary<int, EliteCommodity>();
@@ -147,7 +151,7 @@ namespace AerSpeech
             Loaded = true;
         }
 
-//This is getting out of hand for the AerDB file, perhaps a static AerJSON should be created
+//This is getting out of hand for the AerDB file, perhaps a AerJSON should be created
 // As a container for all of these darn utility methods
 //TODO: Make AerEddb or AerJSON and create an interface between AerDB and it. -SingularTier
 //WARNING: THE CODE IN THE JSON PARSING REGION WILL MAKE YOU VOMIT.

@@ -51,8 +51,10 @@
     <Compile Include="AerInput.cs" />
     <Compile Include="AerKeyboard.cs" />
     <Compile Include="AerRSS.cs" />
+    <Compile Include="AerSpeechHandlerAttribute.cs" />
     <Compile Include="AerTalk.cs" />
     <Compile Include="AerWiki.cs" />
+    <Compile Include="Personality.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
   </ItemGroup>

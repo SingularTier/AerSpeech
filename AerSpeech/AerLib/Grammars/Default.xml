@@ -37171,8 +37171,8 @@
         <tag> out.Command = "SayCurrentSystem" </tag>
       </item>
       <item>
-        <ruleref uri="#StationDistance" />
-        <tag> out.Command = "StationDistance" </tag>
+        <ruleref uri="#DistanceFromStar" />
+        <tag> out.Command = "StationInfo-DistanceFromStar" </tag>
         <tag> out.StationName = rules.StationName.Name</tag>
         <tag> out.SystemName  = rules.SystemName.Name</tag>
       </item>
@@ -37246,7 +37246,7 @@
           <item> star </item>
           <item> sun </item>
         </one-of>
-        <tag> out.Command="StationInfo-DistanceFromStar</tag>
+        <tag> out.Command="StationInfo-DistanceFromStar"</tag>
       </item>
     </one-of>
     <item>of </item>
@@ -37292,7 +37292,7 @@
     </item>
   </rule>
   
-  <rule id="StationDistance">
+  <rule id="DistanceFromStar">
     <one-of>
       <item>
         <item> How far is </item>

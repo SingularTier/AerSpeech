@@ -50,15 +50,18 @@ namespace AerVAPlugin
 
         public static void ExecuteThread()
         {
-            _AerHandler = new AerHandler(AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\json\");
-            _AerInput = new AerInput(_AerHandler, AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\Grammars\");
+            AerTalk talk = new AerTalk();
+            AerDB data = new AerDB(AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\json\");
+            Personality person = new Personality(talk, data);
+            _AerHandler = new AerHandler(data, person);
+            _AerInput = new AerInput(AppDomain.CurrentDomain.BaseDirectory + @"\Apps\AER\Grammars\", person.GrammarLoaded_Handler);
 
             while(_RunWorker)
             {
                 if (_AerInput.NewInput)
                 {
                     _AerInput.NewInput = false;
-                    _AerHandler.DefaultInput_Handler(_AerInput.LastResult);
+                    _AerHandler.InputHandler(_AerInput.LastResult);
                 }
             }
         }

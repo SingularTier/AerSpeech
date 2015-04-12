@@ -21,8 +21,13 @@ namespace AerSpeechConsole
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the A.E.R. Interface Console");
-            _AerHandler = new AerHandler();
-            _AerInput = new AerInput(_AerHandler);
+            AerDB data = new AerDB(@"json\");
+            AerTalk talk = new AerTalk();
+
+            Personality person = new Personality(talk, data);
+            _AerHandler = new AerHandler(data, person);
+            _AerInput = new AerInput(@"Grammars\", person.GrammarLoaded_Handler);
+
             HandleInput();
         }
 
@@ -57,7 +62,7 @@ namespace AerSpeechConsole
                 if (_AerInput.NewInput)
                 {
                     _AerInput.NewInput = false;
-                    _AerHandler.DefaultInput_Handler(_AerInput.LastResult);
+                    _AerHandler.InputHandler(_AerInput.LastResult);
                 }
             }
         }
