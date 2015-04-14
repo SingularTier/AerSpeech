@@ -8,6 +8,7 @@ A.E.R. or Audio Expository Response Interface, is a voice controlled interface m
 After being addressed ('Hey Aer'), Aer will continue to listen to commands for 30 seconds. This timer resets after every command. Below is a list of commands supported in 1.3
 
 ### Supported Commands (Version 1.3)
+  
 ---
 #### A.E.R. Control Related
 ---
@@ -38,6 +39,7 @@ Sets your commander name. For Example:
 'Set Commander Name Tango Echo India space Leema India November' sets the commander name to Tei Lin.
 
 This is currently only used in greetings.
+  
 ---
 #### EDDB Queries
 ---
@@ -73,6 +75,7 @@ Tells you the known distance from star for the requested station
 
 ##### What is the distance from the star of <station> in <system>?
 Another way to access station distances from stars
+  
 ---
 #### Typing
 ---
@@ -87,6 +90,7 @@ Types the last word that A.E.R. Spelled at the cursor.
 
 ##### Type Current System
 Types the current system at the curosr.
+  
 ---
 #### Other
 ---
