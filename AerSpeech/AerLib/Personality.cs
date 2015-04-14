@@ -31,6 +31,25 @@ namespace AerSpeech
         private AerKeyboard _Keyboard;
 
         #region State Variables
+        private string _CommanderName;
+        public string CommanderName
+        {
+            get
+            {
+                if (_CommanderName == null)
+                {
+                    _CommanderName = Settings.Load("CommanderName");
+                }
+
+                return _CommanderName;
+            }
+            set
+            {
+                Settings.Store("CommanderName", value);
+                _CommanderName = value;
+            }
+        }
+
         private EliteSystem _LocalSystem; //Our current local system
         public EliteSystem LocalSystem
         {
@@ -194,6 +213,141 @@ namespace AerSpeech
         }
 
         #region Grammar Rule Handlers
+
+        #region State Machine
+        [SpeechHandlerAttribute("AerQuery")]
+        public void AerQuery_Handler(AerRecognitionResult result)
+        {
+            _Talk.RandomQueryAck();
+        }
+        [SpeechHandlerAttribute("AerEndQuery")]
+        public void AerEndQuery_Handler(AerRecognitionResult result)
+        {
+            _Talk.RandomQueryEndAck();
+        }
+        [SpeechHandlerAttribute("StartListening")]
+        public void StartListening_Handler(AerRecognitionResult result)
+        {
+            _Squelched = false;
+            _Talk.SayStartListening();
+
+        }
+        [SpeechHandlerAttribute("StopListening")]
+        public void StopListening_Handler(AerRecognitionResult result)
+        {
+            _Squelched = true;
+            _Talk.SayStopListening();
+        }
+        [SpeechHandlerAttribute("AerCloseTerminal")]
+        public void AerCloseTerminal_Handler(AerRecognitionResult result)
+        {
+            Environment.Exit(0);
+        }
+        [SpeechHandlerAttribute("CancelSpeech")]
+        public void CancelSpeech_Handler(AerRecognitionResult result)
+        {
+            _Talk.RandomAck();
+        }
+        #endregion
+
+        #region Galnet
+        [SpeechHandlerAttribute("BrowseGalnet")]
+        public void BrowseGalnet_Handler(AerRecognitionResult result)
+        {
+            _GalnetEntry = 0;
+            if (_GalnetRSS.Loaded)
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            else
+                _Talk.RandomNack();
+        }
+        [SpeechHandlerAttribute("NextArticle")]
+        public void NextArticle_Handler(AerRecognitionResult result)
+        {
+            if (_GalnetRSS.Loaded)
+            {
+                _GalnetEntry++;
+
+                if (_GalnetEntry >= _GalnetRSS.Entries.Count)
+                    _GalnetEntry = 0;
+
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            }
+            else
+                _Talk.RandomNack();
+        }
+        [SpeechHandlerAttribute("PreviousArticle")]
+        public void PreviousArticle_Handler(AerRecognitionResult result)
+        {
+            if (_GalnetRSS.Loaded)
+            {
+                _GalnetEntry--;
+
+                if (_GalnetEntry < 0)
+                    _GalnetEntry = 0;
+
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
+            }
+            else
+                _Talk.RandomNack();
+        }
+        [SpeechHandlerAttribute("ReadArticle")]
+        public void ReadArticle_Handler(AerRecognitionResult result)
+        {
+            if (_GalnetRSS.Loaded)
+                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Description);
+            else
+                _Talk.RandomNack();
+        }
+        #endregion
+
+        #region Other
+        [SpeechHandlerAttribute("BasicCalculate")]
+        public void BasicCalculate_Handler(AerRecognitionResult result)
+        {
+            Calculator calculator = new Calculator();
+            string answer = calculator.CalculationResult(result.Data);
+            if (answer == null)
+                _Talk.RandomUnknownAck();
+            else
+                _Talk.Say(answer);
+        }
+        [SpeechHandlerAttribute("SearchWiki")]
+        public void SearchWiki_Handler(AerRecognitionResult result)
+        {
+            string word = result.Data;
+            _Talk.SayBlocking("Searching the wiki for " + word);
+            _Talk.Say(_Wikipedia.Query(word));
+        }
+        [SpeechHandlerAttribute("CurrentTime")]
+        public void CurrentTime_Handler(AerRecognitionResult result)
+        {
+            _Talk.SayCurrentTime();
+        }
+        [SpeechHandlerAttribute("Greetings")]
+        public void Greetings_Handler(AerRecognitionResult result)
+        {
+            _Talk.RandomGreetings(CommanderName);
+        }
+        [SpeechHandlerAttribute("TellJoke")]
+        public void TellJoke_Handler(AerRecognitionResult result)
+        {
+            _Talk.Say(_JokeRSS.Entries[_JokeEntry].Description);
+            _JokeEntry++;
+            if (_JokeEntry >= _JokeRSS.Entries.Count)
+                _JokeEntry = 0;
+        }
+        #endregion
+
+        #region Settings
+        [SpeechHandlerAttribute("Set-CommanderName")]
+        public void SetCommanderName_Handler(AerRecognitionResult result)
+        {
+            _Talk.Say("Setting Commander Name to " + result.Data);
+            CommanderName = result.Data;
+        }
+        #endregion
+
+        #region EDDB
         [SpeechHandlerAttribute("Nearest-BlackMarket")]
         public void NearestBlackMarket_Handler(AerRecognitionResult result)
         {
@@ -288,93 +442,6 @@ namespace AerSpeech
                 _Talk.SayUnknownSystem();
             }
         }
-        [SpeechHandlerAttribute("AerCloseTerminal")]
-        public void AerCloseTerminal_Handler(AerRecognitionResult result)
-        {
-            Environment.Exit(0);
-        }
-        [SpeechHandlerAttribute("Greetings")]
-        public void Greetings_Handler(AerRecognitionResult result)
-        {
-            _Talk.RandomGreetings();
-        }
-        [SpeechHandlerAttribute("AerQuery")]
-        public void AerQuery_Handler(AerRecognitionResult result)
-        {
-            _Talk.RandomQueryAck();
-        }
-        [SpeechHandlerAttribute("AerEndQuery")]
-        public void AerEndQuery_Handler(AerRecognitionResult result)
-        {
-            _Talk.RandomQueryEndAck();
-        }
-        [SpeechHandlerAttribute("SearchWiki")]
-        public void SearchWiki_Handler(AerRecognitionResult result)
-        {
-            string word = result.Data;
-            _Talk.SayBlocking("Searching the wiki for " + word);
-            _Talk.Say(_Wikipedia.Query(word));
-        }
-        [SpeechHandlerAttribute("BrowseGalnet")]
-        public void BrowseGalnet_Handler(AerRecognitionResult result)
-        {
-            _GalnetEntry = 0;
-            if (_GalnetRSS.Loaded)
-                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
-            else
-                _Talk.RandomNack();
-        }
-        [SpeechHandlerAttribute("NextArticle")]
-        public void NextArticle_Handler(AerRecognitionResult result)
-        {
-            if (_GalnetRSS.Loaded)
-            {
-                _GalnetEntry++;
-
-                if (_GalnetEntry >= _GalnetRSS.Entries.Count)
-                    _GalnetEntry = 0;
-
-                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
-            }
-            else
-                _Talk.RandomNack();
-        }
-        [SpeechHandlerAttribute("PreviousArticle")]
-        public void PreviousArticle_Handler(AerRecognitionResult result)
-        {
-            if (_GalnetRSS.Loaded)
-            {
-                _GalnetEntry--;
-
-                if (_GalnetEntry < 0)
-                    _GalnetEntry = 0;
-
-                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Title);
-            }
-            else
-                _Talk.RandomNack();
-        }
-        [SpeechHandlerAttribute("ReadArticle")]
-        public void ReadArticle_Handler(AerRecognitionResult result)
-        {
-            if (_GalnetRSS.Loaded)
-                _Talk.Say(_GalnetRSS.Entries[_GalnetEntry].Description);
-            else
-                _Talk.RandomNack();
-        }
-        [SpeechHandlerAttribute("TellJoke")]
-        public void TellJoke_Handler(AerRecognitionResult result)
-        {
-            _Talk.Say(_JokeRSS.Entries[_JokeEntry].Description);
-            _JokeEntry++;
-            if (_JokeEntry >= _JokeRSS.Entries.Count)
-                _JokeEntry = 0;
-        }
-        [SpeechHandlerAttribute("Instruction")]
-        public void Instruction_Handler(AerRecognitionResult result)
-        {
-            _Talk.SayInstructions();
-        }
         [SpeechHandlerAttribute("SystemInfo")]
         public void SystemInfo_Handler(AerRecognitionResult result)
         {
@@ -426,6 +493,36 @@ namespace AerSpeech
             else
                 _Talk.RandomUnknownAck();
         }
+        [SpeechHandlerAttribute("PriceCheck")]
+        public void PriceCheck_Handler(AerRecognitionResult result)
+        {
+            if (result.Commodity.AveragePrice <= 0)
+            {
+                _Talk.RandomUnknownAck();
+            }
+            else
+            {
+                _Talk.SayAveragePrice(result.Commodity);
+            }
+        }
+        [SpeechHandlerAttribute("FindCommodity")]
+        public void FindCommodity_Handler(AerRecognitionResult result)
+        {
+            if (LocalSystem != null)
+            {
+                EliteStation est = _Data.FindCommodity(result.Commodity.id, LocalSystem, 250);
+                if (est != null)
+                {
+                    _Talk.SayFoundCommodity(result.Commodity, est);
+                    LastStation = est;
+                    LastSystem = est.System;
+                }
+                else
+                    _Talk.SayCannotFindCommodity(result.Commodity);
+            }
+            else
+                _Talk.SayUnknownLocation();
+        }
         [SpeechHandlerAttribute("StarDistance")]
         public void StarDistance_Handler(AerRecognitionResult result)
         {
@@ -458,69 +555,38 @@ namespace AerSpeech
                 LocalSystem = result.System;
             }
         }
-        [SpeechHandlerAttribute("AerCapabilities")]
-        public void AerCapabilities_Handler(AerRecognitionResult result)
-        {
-            _Talk.SayCapabilities();
-        }
-        [SpeechHandlerAttribute("AerCreatorInfo")]
-        public void AerCreatorInfo_Handler(AerRecognitionResult result)
-        {
-            _Talk.SayCreaterInfo();
-        }
-        [SpeechHandlerAttribute("AerIdentity")]
-        public void AerIdentity_Handler(AerRecognitionResult result)
-        {
-            _Talk.SayIdentity();
-        }
-        [SpeechHandlerAttribute("PriceCheck")]
-        public void PriceCheck_Handler(AerRecognitionResult result)
-        {
-            if (result.Commodity.AveragePrice <= 0)
-            {
-                _Talk.RandomUnknownAck();
-            }
-            else
-            {
-                _Talk.Say(result.Commodity.AveragePrice.ToString());
-            }
-        }
-        [SpeechHandlerAttribute("FindCommodity")]
-        public void FindCommodity_Handler(AerRecognitionResult result)
+        [SpeechHandlerAttribute("SayCurrentSystem")]
+        public void SayCurrentSystem_Handler(AerRecognitionResult result)
         {
             if (LocalSystem != null)
-            {
-                EliteStation est = _Data.FindCommodity(result.Commodity.id, LocalSystem, 250);
-                if (est != null)
-                {
-                    _Talk.SayFoundCommodity(result.Commodity, est);
-                    LastStation = est;
-                    LastSystem = est.System;
-                }
-                else
-                    _Talk.SayCannotFindCommodity(result.Commodity);
-            }
+                _Talk.Say(LocalSystem.Name);
             else
                 _Talk.SayUnknownLocation();
-        }
-        [SpeechHandlerAttribute("CancelSpeech")]
-        public void CancelSpeech_Handler(AerRecognitionResult result)
-        {
-            _Talk.RandomAck();
-        }
-        [SpeechHandlerAttribute("StartListening")]
-        public void StartListening_Handler(AerRecognitionResult result)
-        {
-            _Squelched = false;
-            _Talk.SayStartListening();
 
         }
-        [SpeechHandlerAttribute("StopListening")]
-        public void StopListening_Handler(AerRecognitionResult result)
+        [SpeechHandlerAttribute("AllegianceDistance")]
+        public void AllegianceDistance_Handler(AerRecognitionResult result)
         {
-            _Squelched = true;
-            _Talk.SayStopListening();
+            if (LocalSystem == null)
+                _Talk.SayUnknownLocation();
+            else
+            {
+                EliteSystem es = _Data.FindClosestAllegiance(result.Data, LocalSystem);
+                if (es != null)
+                {
+                    LastSystem = es;
+                    _Talk.SayAndSpell(es.Name);
+                }
+                else
+                {
+                    _Talk.RandomUnknownAck();
+                }
+            }
+
         }
+        #endregion
+
+        #region Type
         [SpeechHandlerAttribute("TypeLastSpelled")]
         public void TypeLastSpelled_Handler(AerRecognitionResult result)
         {
@@ -564,14 +630,28 @@ namespace AerSpeech
             _Talk.RandomAck();
             _Keyboard.Type(LocalSystem.Name);
         }
-        [SpeechHandlerAttribute("SayCurrentSystem")]
-        public void SayCurrentSystem_Handler(AerRecognitionResult result)
-        {
-            if (LocalSystem != null)
-                _Talk.Say(LocalSystem.Name);
-            else
-                _Talk.SayUnknownLocation();
+        #endregion
 
+        #region Aer Info
+        [SpeechHandlerAttribute("Instructions")]
+        public void Instruction_Handler(AerRecognitionResult result)
+        {
+            _Talk.SayInstructions();
+        }
+        [SpeechHandlerAttribute("AerCreatorInfo")]
+        public void AerCreatorInfo_Handler(AerRecognitionResult result)
+        {
+            _Talk.SayCreaterInfo();
+        }
+        [SpeechHandlerAttribute("AerIdentity")]
+        public void AerIdentity_Handler(AerRecognitionResult result)
+        {
+            _Talk.SayIdentity();
+        }
+        [SpeechHandlerAttribute("AerCapabilities")]
+        public void AerCapabilities_Handler(AerRecognitionResult result)
+        {
+            _Talk.SayCapabilities();
         }
         [SpeechHandlerAttribute("SayCurrentVersion")]
         public void SayCurrentVersion_Handler(AerRecognitionResult result)
@@ -579,26 +659,13 @@ namespace AerSpeech
             _Talk.Say(AerDebug.VERSION_NUMBER);
 
         }
-        [SpeechHandlerAttribute("AllegianceDistance")]
-        public void AllegianceDistance_Handler(AerRecognitionResult result)
-        {
-            if (LocalSystem == null)
-                _Talk.SayUnknownLocation();
-            else
-            {
-                EliteSystem es = _Data.FindClosestAllegiance(result.Data, LocalSystem);
-                if (es != null)
-                {
-                    LastSystem = es;
-                    _Talk.SayAndSpell(es.Name);
-                }
-                else
-                {
-                    _Talk.RandomUnknownAck();
-                }
-            }
+        #endregion
 
-        }
+
+
+      
+
+
         #endregion
     }
 }
