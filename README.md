@@ -8,9 +8,9 @@ A.E.R. or Audio Expository Response Interface, is a voice controlled interface m
 After being addressed ('Hey Aer'), Aer will continue to listen to commands for 30 seconds. This timer resets after every command. Below is a list of commands supported in 1.3
 
 ### Supported Commands (Version 1.3)
-
+---
 #### A.E.R. Control Related
-
+---
 ##### Hey Aer
 Begins an interaction with A.E.R.
 
@@ -38,9 +38,9 @@ Sets your commander name. For Example:
 'Set Commander Name Tango Echo India space Leema India November' sets the commander name to Tei Lin.
 
 This is currently only used in greetings.
-
+---
 #### EDDB Queries
-
+---
 ##### I need information on [System]
 Gives you basic information from EDDB on the system. If AER misunderstands you or doesn't have the system in her database she will tell you.
 
@@ -63,7 +63,7 @@ Finds the closest known station selling the commodity.
 Finds the closest known station with a black market
 
 ##### Where is the nearest [Federation|Alliance|Empire] System?
-Finds the closest known system with the requested allegiance. *Double check against the galaxy map as some of the allegiance information is outdated especially near the borders!!*
+Finds the closest known system with the requested allegiance. **Double check against the galaxy map as some of the allegiance information is outdated especially near the borders!!**
 
 ##### What is the [Max Landing Pad Size|Known Services|Allegiance] of <station> in <system>
 Returns the details asked for. You can substitute 'current' or 'local' system for <system>
@@ -73,9 +73,9 @@ Tells you the known distance from star for the requested station
 
 ##### What is the distance from the star of <station> in <system>?
 Another way to access station distances from stars
-
+---
 #### Typing
-
+---
 ##### Type System [System]
 Types the system name at the cursor
 
@@ -87,9 +87,9 @@ Types the last word that A.E.R. Spelled at the cursor.
 
 ##### Type Current System
 Types the current system at the curosr.
-
+---
 #### Other
-
+---
 ##### Greetings
 You can greet AER by saying 'Hello' 'Good [Evening|Afternoon|Morning]'
 
