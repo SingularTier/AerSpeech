@@ -37199,11 +37199,57 @@
         <ruleref uri="#CancelSpeech" />
         <tag> out.Command = "CancelSpeech" </tag>
       </item>
+      <item>
+        <ruleref uri="#Settings"/>
+        <tag> out.Command = rules.Settings.Command </tag>
+        <tag> out.Data = rules.Settings.Data </tag>
+      </item>
+      <item>
+        <ruleref uri="#CurrentTime" />
+        <tag> out.Command = "CurrentTime" </tag>
+      </item>
+      <item>
+        <ruleref uri="#BasicCalculate" />
+        <tag> out.Command = "BasicCalculate" </tag>
+        <tag> out.Data = rules.CalculationBuilder.Word </tag>
+      </item>
     </one-of>  
   </rule>
 
+  <rule id="CurrentTime">
+    <item> What time is it? </item>
+  </rule>
+  
+  <rule id="Settings">
+    <item>Set</item>
+    <one-of>
+      <item>
+        <item>
+          Commander Name to <tag> out.Command="Set-CommanderName"</tag>
+        </item>
+        <item>
+          <ruleref uri="#BuildAWord" />
+          <tag> out.Data = rules.BuildAWord.Word </tag>
+        </item>
+      </item>
+      <item>
+        <item>
+          Listen Timeout to <tag> out.Command="Set-ListenTimeout"</tag>
+        </item>
+        <item>
+          <ruleref uri="#BuildAWord" />
+          <tag> out.Data = rules.BuildAWord.Word </tag>
+        </item>
+      </item>
+    </one-of>
+    
+  </rule>
+  
   <rule id="NearestStationWith">
-    <item> what </item>
+    <one-of>
+      <item> what </item>
+      <item> where </item>
+    </one-of>
     <one-of>
       <item> are </item>
       <item> is </item>
@@ -37264,9 +37310,11 @@
       <ruleref uri="#CommandPrefix" />
     </item>
     <one-of>
-      <item> What is the </item>
-      <item> Find the </item>
+      <item> Where is</item>
+      <item> What is</item>
+      <item> Find </item>
     </one-of>
+    <item>the</item>
     <one-of>
       <item> nearest </item>
       <item> closest </item>
@@ -37329,7 +37377,10 @@
       <ruleref uri="#CommandPrefix" />
     </item>
       <item>
-        <item>Information on</item>
+        <one-of>
+          <item>Information on</item>
+          <item>tell me about</item>
+        </one-of>
         <item>
           <ruleref uri="#StationName" />
         </item>
@@ -37617,9 +37668,11 @@
   </rule>
 
   <rule id="AerEndQuery">
-    <item> Thanks Aer </item>
-    <item> Thank You </item>
-    <item> Nevermind </item>
+    <one-of>
+      <item> Thanks Aer </item>
+      <item> Thank You </item>
+      <item> Nevermind </item>
+    </one-of>
   </rule>
   
   <rule id="AerCapabilities">
@@ -37832,4 +37885,53 @@
     </one-of>
   </rule>
 
+  <rule id="BasicCalculate">
+    <item repeat="0-1">
+      <ruleref uri="#CommandPrefix" />
+    </item>
+    <item> calculate </item>
+    <ruleref uri="#CalculationBuilder"/>
+    <!--
+    <item>
+      <ruleref uri="grammar:dictation" type="application/srgs+xml"/>
+      <tag> out.SpokenWords = rules.latest(); </tag>
+    </item>
+    -->
+  </rule>
+
+  <rule id="CalculationBuilder">
+    <tag> out.Word = "" </tag>
+    <one-of>
+      <item repeat="1-30">
+        <ruleref uri="#CalculationWords"></ruleref>
+        <tag> out.Word += rules.CalculationWords.Letter;</tag>
+      </item>
+    </one-of>
+  </rule>
+  
+  <rule id="CalculationWords">
+    <one-of>
+      <item> One <tag> out.Letter = "1"; </tag> </item>
+      <item> Two <tag> out.Letter = "2"; </tag></item>
+      <item> Three <tag> out.Letter = "3"; </tag></item>
+      <item> Four <tag> out.Letter = "4"; </tag> </item>
+      <item> Five <tag> out.Letter = "5"; </tag> </item>
+      <item> Six <tag> out.Letter = "6"; </tag> </item>
+      <item> Seven <tag> out.Letter = "7"; </tag> </item>
+      <item> Eight <tag> out.Letter = "8"; </tag> </item>
+      <item> Nine <tag> out.Letter = "9"; </tag> </item>
+      <item> Zero <tag> out.Letter = "0"; </tag> </item>
+      <item> dot <tag> out.Letter = "." </tag> </item>
+      <item> point <tag> out.Letter = "." </tag> </item>
+      <item> comma <tag> out.Letter = "." </tag> </item>
+      <item> times <tag> out.Letter = "*" </tag> </item>
+      <item> multiplied by <tag> out.Letter = "*" </tag> </item>
+      <item> divided by <tag> out.Letter = "/" </tag> </item>
+      <item> plus <tag> out.Letter = "+" </tag> </item>
+      <item> minus <tag> out.Letter = "-" </tag> </item>
+      <item> negative <tag> out.Letter = "-" </tag> </item>
+      <item> to the power of <tag> out.Letter = "^" </tag> </item>
+      <item> sqare root of <tag> out.Letter = "sqrt" </tag> </item>
+    </one-of>
+  </rule>
 </grammar>

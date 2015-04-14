@@ -66,6 +66,7 @@ namespace AerSpeechConsole
                     _AerInput.NewInput = false;
                     _AerHandler.InputHandler(_AerInput.LastResult);
                 }
+                Thread.Sleep(10); //Keep CPU usage down until we handle responses async
             }
         }
     }
