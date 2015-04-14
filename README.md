@@ -1,6 +1,8 @@
 # A.E.R. Interface
 ### Audio Interface for Elite Dangerous
 
+Tutorial Video: https://www.youtube.com/watch?v=9Wdi7uVZ87U&feature=youtu.be
+
 A.E.R. or Audio Expository Response Interface, is a voice controlled interface made to simplify playing Elite: Dangerous without leaving the game (like when you play on a Rift).
 
 ### Instructions
