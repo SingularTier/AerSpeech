@@ -39,39 +39,39 @@ Sets your commander name. For Example:
 
 This is currently only used in greetings.
 
-##### EDDB Queries
+#### EDDB Queries
 
-#### I need information on [System]
+##### I need information on [System]
 Gives you basic information from EDDB on the system. If AER misunderstands you or doesn't have the system in her database she will tell you.
 
-#### I need information on [Station] in [System]
+##### I need information on [Station] in [System]
 Gives you detailed information from EDDB on a station.
 
-#### Set local system to [System]
+##### Set local system to [System]
 Allows AER to perform commands based on the current system. There is no way outside of the game to directly track where you are, so you have to give AER updates if you want to use some of the commands.
 
-#### How far is [System]
+##### How far is [System]
 Gives you the distance (in light years) of the system from your current system
 
-#### How far is [System] from [System]
+##### How far is [System] from [System]
 Gives you the distance (in light years) between the two systems.
 
-#### Search for [Commodity]
+##### Search for [Commodity]
 Finds the closest known station selling the commodity.
 
-#### Where is the nearest Black Market?
+##### Where is the nearest Black Market?
 Finds the closest known station with a black market
 
-#### Where is the nearest [Federation|Alliance|Empire] System?
+##### Where is the nearest [Federation|Alliance|Empire] System?
 Finds the closest known system with the requested allegiance. *Double check against the galaxy map as some of the allegiance information is outdated especially near the borders!!*
 
-#### What is the [Max Landing Pad Size|Known Services|Allegiance] of <station> in <system>
+##### What is the [Max Landing Pad Size|Known Services|Allegiance] of <station> in <system>
 Returns the details asked for. You can substitute 'current' or 'local' system for <system>
 
-#### How far is <station> from the star in <system>?
+##### How far is <station> from the star in <system>?
 Tells you the known distance from star for the requested station
 
-#### What is the distance from the star of <station> in <system>?
+##### What is the distance from the star of <station> in <system>?
 Another way to access station distances from stars
 
 #### Typing
