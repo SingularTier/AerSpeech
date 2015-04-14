@@ -91,6 +91,10 @@ Types the last word that A.E.R. Spelled at the cursor.
 ##### Type Current System
 Types the current system at the curosr.
   
+##### Type Dictation [Words]
+Uses Microsoft dictation grammar to allow you to dictate a sentence. 
+  
+  
 ---
 #### Other
 ---
