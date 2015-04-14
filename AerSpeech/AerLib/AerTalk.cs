@@ -51,20 +51,38 @@ namespace AerSpeech
             _synth.SpeakAsyncCancelAll();
             _synth.Speak(stripFormatting(text));
         }
-        public void RandomGreetings()
+        public void SayCurrentTime()
         {
+            DateTime now = DateTime.Now;
+            string time = now.ToShortTimeString();
+            this.Say(Regex.Replace(time, ":", " "));
+        }
+        public void SayAveragePrice(EliteCommodity ec)
+        {
+            this.Say("The EDDB Average price for " + ec.Name + " is " + ec.AveragePrice);
+        }
+
+        public void RandomGreetings(string commanderName)
+        {
+            StringBuilder greeting = new StringBuilder();
             int rsp = rand.Next(0, 2);
             switch (rsp)
             {
                 case 0:
-                    this.Say("Greetings Commander");
+                    greeting.Append("Greetings Commander");
                     break;
                 case 1:
-                    this.Say("Hello Commander");
+                    greeting.Append("Hello Commander");
                     break;
                 default:
                     break;
             }
+
+            if (commanderName != null)
+                greeting.Append(commanderName);
+
+            this.Say(greeting.ToString());
+
         }
         public void RandomQueryAck()
         {
@@ -155,7 +173,7 @@ namespace AerSpeech
         }
         public void SayCapabilities()
         {
-            this.Say("I can search for commodities, browse the galnet news, search wikipedia, and even tell jokes. For more information, ask for instructions");
+            this.Say("I can search for commodities, browse the galnet news, search wikipedia, and even tell jokes. For more information, ask for instructions, or visit the website at aer-interface.com");
         }
         public void SayInstructions()
         {
