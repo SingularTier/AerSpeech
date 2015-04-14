@@ -663,7 +663,6 @@ namespace AerSpeech
         public EliteStation FindClosestBlackMarket(EliteSystem origin)
         {
             List<EliteSystem> nearbySystems = _GetSystemsAround(origin, 500);
-            EliteStation closest = null;
             List<EliteStation> stationsWithBlackMarket = new List<EliteStation>(); ;
             foreach (EliteSystem sys in nearbySystems)
             {
