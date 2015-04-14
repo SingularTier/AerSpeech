@@ -176,7 +176,7 @@ namespace AerSpeech
 #if DEBUG
         public void DBG_CompileGrammars()
         {
-            _Eddb.DBG_CompileGrammars();
+            _Data.DBG_CompileGrammars();
         }
 #endif
 #endregion
