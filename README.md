@@ -114,19 +114,23 @@ Says the current real-life time.
 Allows you to do simple calculations. [numbers] must be entered digit by digit. For example:
 
   245.30 * 80, should be entered as "calculate two four five point three zero times eight zero"
+    
+    
+----
 
-
-
-### Voices
+## Voices
 A.E.R. uses your system's TTS voice. A lot of streamers (and A.S.T.R.A.) use the IVONA Amy voice. I prefer the IVONA Ivy voice. Microsoft has a few low-quality voices available for download (such as Hazel and ZiraPro), but you have to fiddle to get them working. 
 
 A.E.R. is licensed under LGPL 3.0
 
-###How to Install:
+
+---- 
+
+##How to Install:
   
-####Command Console version 
+###Command Console version 
 Extract AERConsole.zip to any folder and run 'AerSpeechConsole.exe'
   
-####Voice Attack Plugin 
+###Voice Attack Plugin 
 Extract AERVAPlugin.zip to the VoiceAttack\Apps folder.
 The final location should be 'VoiceAttack\Apps\AER'. The AER subfolder is not optional.
