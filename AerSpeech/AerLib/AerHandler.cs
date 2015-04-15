@@ -17,6 +17,7 @@ namespace AerSpeech
     {
         public double RequiredConfidence;
         public double Confidence;
+        public string Text;
         public string Command;
         public string Data;
         public EliteStation Station;
@@ -52,6 +53,7 @@ namespace AerSpeech
             int numberOfSemantics = 0;
             AerRecognitionResult output = new AerRecognitionResult();
             output.Confidence = input.Confidence;
+            output.Text = input.Text;
             try
             {
                 if (input.Semantics.ContainsKey("Command") && input.Semantics["Command"] != null)

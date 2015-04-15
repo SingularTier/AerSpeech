@@ -31,8 +31,16 @@ namespace AerSpeech
         public AerInput(string pathToGrammar = @"Grammars\", EventHandler<LoadGrammarCompletedEventArgs> GrammarLoaded = null)
         {
             LoadSettings();
+            try
+            { 
+                RecognitionEngine = new SpeechRecognitionEngine(new CultureInfo(_CultureInfo));
+            }
+            catch (ArgumentException e)
+            {
+                AerDebug.LogError("Could not load speech recognizer with the current Culture settings (" + _CultureInfo + "), using default");
+                RecognitionEngine = new SpeechRecognitionEngine();
+            }
 
-            RecognitionEngine = new SpeechRecognitionEngine(new CultureInfo(_CultureInfo));
             RecognitionEngine.SetInputToDefaultAudioDevice();
             LoadGrammar(pathToGrammar, GrammarLoaded);
             RecognitionEngine.SpeechRecognized += this.SpeechRecognized_Handler;
@@ -60,7 +68,7 @@ namespace AerSpeech
         /// </summary>
         protected virtual void LoadSettings()
         {
-            string rspSpeed = Settings.Load("ResponseSpeed", "750");
+            string rspSpeed = Settings.Load(Settings.RESPONSE_SPEED_NODE, "750");
             if (rspSpeed == null)
             {
                 AerDebug.LogError("Could not load ResponseSpeed from settings file!");
@@ -78,7 +86,7 @@ namespace AerSpeech
                 _ResponseSpeed = 750; //Default if it breaks.
             }
 
-            _CultureInfo = Settings.Load("CultureInfo", "en-US");
+            _CultureInfo = Settings.Load(Settings.CULTURE_NODE, "en-US");
         }
 
         /// <summary>
@@ -93,7 +101,6 @@ namespace AerSpeech
 
             NewInput = true;
             LastResult = e.Result;
-            AerDebug.LogSpeech(e.Result.Text, e.Result.Confidence);
         }
 
     }

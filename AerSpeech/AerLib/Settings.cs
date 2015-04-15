@@ -12,12 +12,18 @@ namespace AerSpeech
 {
     public static class Settings
     {
-        private static string SettingsFile = Application.UserAppDataPath + "\\AERSettings.xml";
+        public static string REQUIRE_QUERY_NODE = "RequireAerQuery";
+        public static string COMMANDER_NAME_NODE = "CommanderName";
+        public static string RESPONSE_SPEED_NODE = "ResponseSpeed";
+        public static string CULTURE_NODE = "CultureInfo";
+        private static string SettingsFile;
+
         public static Dictionary<string, string> Keys;
        
         static Settings()
         {
             Keys = new Dictionary<string, string>();
+            SettingsFile = AerDebug.GetUserDataPath() + "\\AERSettings.xml";
             ReloadSettings();
         }
 
@@ -41,7 +47,8 @@ namespace AerSpeech
             {
                 string name = entry.Name;
                 string data = entry.InnerText;
-                Keys.Add(name, data);
+                if(!Keys.ContainsKey(name))
+                    Keys.Add(name, data);
             }
 
             settingsFile.Close();

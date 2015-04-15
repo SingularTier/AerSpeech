@@ -17,6 +17,7 @@ namespace AerSpeechConsole
         static AerInput _AerInput;
         static AerHandler _AerHandler;
         static bool _RunWorker;
+        
 
         static void Main(string[] args)
         {
@@ -25,6 +26,7 @@ namespace AerSpeechConsole
             AerTalk talk = new AerTalk();
 
             Personality person = new Personality(talk, data);
+            
             _AerHandler = new AerHandler(data, person);
             //I know this is bad, but there's no good way to get the delegate surfaced out of AerInput in to AerTalk yet.
             // This could be solved with a service registry, but I haven't thought that through yet

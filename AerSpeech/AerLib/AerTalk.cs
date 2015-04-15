@@ -32,8 +32,10 @@ namespace AerSpeech
 
         public void Say(string text)
         {
+            string sayme = stripFormatting(text);
+            AerDebug.LogSay(sayme);
             _synth.SpeakAsyncCancelAll();
-            _synth.SpeakAsync(stripFormatting(text));
+            _synth.SpeakAsync(stripFormatting(sayme));
         }
 
         public void SayInitializing()
@@ -361,7 +363,7 @@ namespace AerSpeech
                 ", State, " +  _BlanksToUnknown(est.State) +
                 ", StarportType, " +  _BlanksToUnknown(est.StarportType));
 
-            stationInfo.Append(". Its distance from the star is" + est.DistanceFromStar + "light seconds. ");
+            stationInfo.Append(". Its distance from the star is " + est.DistanceFromStar + " light seconds. ");
 
             stationInfo.Append("Maximum Landing Pad Size, ");
             switch(est.MaxPadSize)

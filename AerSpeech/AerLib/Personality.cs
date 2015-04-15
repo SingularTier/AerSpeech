@@ -38,14 +38,14 @@ namespace AerSpeech
             {
                 if (_CommanderName == null)
                 {
-                    _CommanderName = Settings.Load("CommanderName");
+                    _CommanderName = Settings.Load(Settings.COMMANDER_NAME_NODE);
                 }
 
                 return _CommanderName;
             }
             set
             {
-                Settings.Store("CommanderName", value);
+                Settings.Store(Settings.COMMANDER_NAME_NODE, value);
                 _CommanderName = value;
             }
         }
@@ -78,6 +78,7 @@ namespace AerSpeech
         private int _StopListeningTime;
         DateTime _LastQueryTime;
         private Dictionary<string, AerInputHandler> _EventRegistry;
+        private bool _ReqQuery;
         #endregion
 
         public Personality(AerTalk voiceSynth, AerDB data)
@@ -85,6 +86,7 @@ namespace AerSpeech
 
             _Data = data;
             _Talk = voiceSynth;
+            _ReqQuery = Settings.Load("RequireAerQuery", "1").Equals("1");
             _Talk.SayInitializing();
             _EventRegistry = new Dictionary<string, AerInputHandler>();
             _Keyboard = new AerKeyboard();
@@ -104,8 +106,11 @@ namespace AerSpeech
         {
             if (input.Confidence < input.RequiredConfidence)
             {
+                AerDebug.LogSpeech(input.Text, input.Confidence, false);
                 return;
             }
+
+            AerDebug.LogSpeech(input.Text, input.Confidence, true);
 
             if (input.Command != null)
             { 
@@ -132,9 +137,10 @@ namespace AerSpeech
                             _LastQueryTime = DateTime.UtcNow;
                             _EventRegistry[input.Command](input);
                         }
-                        else
+                        //If require query is turned off...
+                        else if (!_ReqQuery)
                         {
-                            //Do nothing until Aer is addressed again...
+                            _EventRegistry[input.Command](input);
                         }
                     }
                     else

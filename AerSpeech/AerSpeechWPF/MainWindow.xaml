@@ -1,0 +1,16 @@
+﻿<mui:ModernWindow x:Class="AerWPF.MainWindow"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mui="http://firstfloorsoftware.com/ModernUI"
+                  Title="A.E.R. Interface"
+                  ContentSource="/Console.xaml" Height="423.06" Width="666.507" mui:ModernFrame.KeepAlive="true">
+    <mui:ModernWindow.MenuLinkGroups>
+        <mui:LinkGroup DisplayName="A.E.R." >
+            <mui:LinkGroup.Links>
+                <mui:Link DisplayName="Console"  Source="Console.xaml"/>
+                <mui:Link DisplayName="Notes" />
+                <mui:Link DisplayName="Settings" />
+            </mui:LinkGroup.Links>
+        </mui:LinkGroup>
+    </mui:ModernWindow.MenuLinkGroups>
+</mui:ModernWindow>
