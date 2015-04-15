@@ -1,7 +1,11 @@
 # A.E.R. Interface
 ### Audio Interface for Elite Dangerous
 
+Tutorial Video: https://www.youtube.com/watch?v=9Wdi7uVZ87U&feature=youtu.be
+
 A.E.R. or Audio Expository Response Interface, is a voice controlled interface made to simplify playing Elite: Dangerous without leaving the game (like when you play on a Rift).
+
+A.E.R. is licensed under LGPL 3.0
 
 ### Instructions
 
@@ -67,13 +71,13 @@ Finds the closest known station with a black market
 ##### Where is the nearest [Federation|Alliance|Empire] System?
 Finds the closest known system with the requested allegiance. **Double check against the galaxy map as some of the allegiance information is outdated especially near the borders!!**
 
-##### What is the [Max Landing Pad Size|Known Services|Allegiance] of <station> in <system>
+##### What is the [Max Landing Pad Size|Known Services|Allegiance] of [station] in [system]
 Returns the details asked for. You can substitute 'current' or 'local' system for <system>
 
-##### How far is <station> from the star in <system>?
+##### How far is [station] from the star in [system]?
 Tells you the known distance from star for the requested station
 
-##### What is the distance from the star of <station> in <system>?
+##### What is the distance from the star of [station] in [system]?
 Another way to access station distances from stars
   
 ---
@@ -120,8 +124,6 @@ Allows you to do simple calculations. [numbers] must be entered digit by digit. 
 
 ## Voices
 A.E.R. uses your system's TTS voice. A lot of streamers (and A.S.T.R.A.) use the IVONA Amy voice. I prefer the IVONA Ivy voice. Microsoft has a few low-quality voices available for download (such as Hazel and ZiraPro), but you have to fiddle to get them working. 
-
-A.E.R. is licensed under LGPL 3.0
 
 
 ---- 
