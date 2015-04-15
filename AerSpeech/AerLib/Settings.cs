@@ -62,12 +62,19 @@ namespace AerSpeech
             return true;
         }
 
-        public static string Load(string name)
+        public static string Load(string name, string initialValue = null)
         {
             if (Keys.ContainsKey(name))
                 return Keys[name];
+            else if (initialValue != null)
+            {
+                Store(name, initialValue);
+                return initialValue;
+            }
             else
+            {
                 return null;
+            }
         }
 
         private static void _SaveData()

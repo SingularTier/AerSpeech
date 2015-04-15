@@ -79,7 +79,9 @@ namespace AerSpeech
             }
 
             if (commanderName != null)
-                greeting.Append(commanderName);
+            {
+                greeting.Append(" " + commanderName);
+            }
 
             this.Say(greeting.ToString());
 

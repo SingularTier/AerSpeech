@@ -21,17 +21,24 @@ namespace AerSpeech
         public RecognitionResult LastResult;
         public bool NewInput;
 
+        private int _ResponseSpeed;
+        private string _CultureInfo;
+
         //I know that GrammarLoaded is bad, but there's no good way to get the delegate surfaced out of AerInput in to AerTalk yet.
         // This could be solved with a service registry, but I haven't thought that through yet.
         // It could also be solved by using RecognitionEngine.LoadGrammar() instead of the Async version again, but
         // I rather like the async version.
         public AerInput(string pathToGrammar = @"Grammars\", EventHandler<LoadGrammarCompletedEventArgs> GrammarLoaded = null)
         {
-            RecognitionEngine = new SpeechRecognitionEngine(new CultureInfo("en-US"));
+            LoadSettings();
+
+            RecognitionEngine = new SpeechRecognitionEngine(new CultureInfo(_CultureInfo));
             RecognitionEngine.SetInputToDefaultAudioDevice();
             LoadGrammar(pathToGrammar, GrammarLoaded);
             RecognitionEngine.SpeechRecognized += this.SpeechRecognized_Handler;
-            RecognitionEngine.UpdateRecognizerSetting("ResponseSpeed", 750); //TODO: 750 should be a setting -SingularTier
+
+
+            RecognitionEngine.UpdateRecognizerSetting("ResponseSpeed", _ResponseSpeed);
             NewInput = false;
             RecognitionEngine.RecognizeAsync(RecognizeMode.Multiple);
         }
@@ -48,7 +55,31 @@ namespace AerSpeech
             RecognitionEngine.LoadGrammarAsync(grammar);
         }
 
+        /// <summary>
+        /// Pulls data out of the settings file
+        /// </summary>
+        protected virtual void LoadSettings()
+        {
+            string rspSpeed = Settings.Load("ResponseSpeed", "750");
+            if (rspSpeed == null)
+            {
+                AerDebug.LogError("Could not load ResponseSpeed from settings file!");
+                rspSpeed = "750";
+            }
 
+            try
+            {
+                _ResponseSpeed = int.Parse(rspSpeed);
+            }
+            catch (Exception e)
+            {
+                AerDebug.LogError("Invalid ResponseSpeed in settings file!");
+                AerDebug.LogException(e);
+                _ResponseSpeed = 750; //Default if it breaks.
+            }
+
+            _CultureInfo = Settings.Load("CultureInfo", "en-US");
+        }
 
         /// <summary>
         /// Handles the SpeechRecognized event from the Recognition Engine
