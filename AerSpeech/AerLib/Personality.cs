@@ -90,7 +90,7 @@ namespace AerSpeech
             _Talk.SayInitializing();
             _EventRegistry = new Dictionary<string, AerInputHandler>();
             _Keyboard = new AerKeyboard();
-            _GalnetRSS = new AerRSS("http://www.elitedangerous.com/en/news/galnet/rss");
+            _GalnetRSS = new AerRSS("https://www.elitedangerous.com/en/galnet-rss");
             _JokeRSS = new AerRSS("http://www.jokes2go.com/jspq.xml");
             _Wikipedia = new AerWiki();
             _StopListeningTime = 30; //30 seconds
